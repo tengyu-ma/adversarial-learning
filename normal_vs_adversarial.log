@@ -1,0 +1,13 @@
+2017-02-19 09:52:02,000 test_data   accuracy    confidence
+2017-02-19 09:52:02,402 ===== Linear_Softmax_GradientDescentOptimizer 1000 iteration =====
+2017-02-19 09:52:03,452 normal      0.9165      0.896994
+2017-02-19 09:52:04,800 adversarial	0.0918      0.794997
+2017-02-19 09:52:04,802 ===== ReLU_Softmax_AdamOptimizer 1000 iteration =====
+2017-02-19 09:54:17,077 normal      0.9606      0.951858
+2017-02-19 09:54:53,101 adversarial	0.0464      0.77403
+2017-02-19 10:00:59,623 ===== Linear_Softmax_GradientDescentOptimizer 1000 iteration =====
+2017-02-19 10:01:00,657 normal		0.9175		0.898471
+2017-02-19 10:01:02,056 adversarial	0.0822		0.801891
+2017-02-19 10:01:02,058 ===== ReLU_Softmax_AdamOptimizer 1000 iteration =====
+2017-02-19 10:03:03,495 normal		0.965		0.953986
+2017-02-19 10:03:32,485 adversarial	0.0342		0.796919

@@ -1,17 +1,17 @@
 import tensorflow as tf
 
 
-def gradient_descent_optimizer(data, sess, x, y_, iter=1000):
+def Linear_Softmax_GradientDescentOptimizer(data, sess, x, y_, keep_prob, iter=1000):
     """
     a gradient descent optimizer
     :param data: dataset
     :param sess: tensorflow session
     :param x: tensorflow placeholder for training data
     :param y_: tensorflow placeholder for training label
+    :param keep_prob: drop out probability
     :param iter: iteration time for training
-    :return: y: target function
+    :return: y: target function / predicted value
     """
-
     # target function
     W = tf.Variable(tf.zeros([784, 10]))
     b = tf.Variable(tf.zeros([10]))
@@ -27,10 +27,10 @@ def gradient_descent_optimizer(data, sess, x, y_, iter=1000):
         batch = data.train.next_batch(100)
         train_step.run(feed_dict={x: batch[0], y_: batch[1]})
 
-    return y
+    return tf.nn.softmax(y), cross_entropy
 
 
-def small_convolutional_neural_network(data, sess, x, y_, keep_prob, iter=20000):
+def ReLU_Softmax_AdamOptimizer(data, sess, x, y_, keep_prob, iter=20000):
     """
     a small convolutional neural network
     :param data: dataset
@@ -39,7 +39,7 @@ def small_convolutional_neural_network(data, sess, x, y_, keep_prob, iter=20000)
     :param y_: tensorflow placeholder for training label
     :param keep_prob: probability of dropout
     :param iter: iteration time for training
-    :return: y_conv: target function
+    :return: y_conv: target function / predicted value
     """
     def weight_variable(shape):
         initial = tf.truncated_normal(shape, stddev=0.1)
@@ -101,4 +101,4 @@ def small_convolutional_neural_network(data, sess, x, y_, keep_prob, iter=20000)
             print("step %d, training accuracy %g" % (i, train_accuracy))
         train_step.run(feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
 
-    return y_conv
+    return tf.nn.softmax(y_conv), cross_entropy
