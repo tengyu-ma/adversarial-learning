@@ -1,13 +1,14 @@
 import tensorflow as tf
 
 
-def gradient_descent_optimizer(data, sess, x, y_):
+def gradient_descent_optimizer(data, sess, x, y_, iter=1000):
     """
     a gradient descent optimizer
     :param data: dataset
     :param sess: tensorflow session
     :param x: tensorflow placeholder for training data
     :param y_: tensorflow placeholder for training label
+    :param iter: iteration time for training
     :return: y: target function
     """
 
@@ -22,14 +23,14 @@ def gradient_descent_optimizer(data, sess, x, y_):
     # steepest gradient descent
     train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
 
-    for _ in range(1000):
+    for _ in range(iter):
         batch = data.train.next_batch(100)
         train_step.run(feed_dict={x: batch[0], y_: batch[1]})
 
     return y
 
 
-def small_convolutional_neural_network(data, sess, x, y_, keep_prob):
+def small_convolutional_neural_network(data, sess, x, y_, keep_prob, iter=20000):
     """
     a small convolutional neural network
     :param data: dataset
@@ -37,6 +38,7 @@ def small_convolutional_neural_network(data, sess, x, y_, keep_prob):
     :param x: tensorflow placeholder for training data
     :param y_: tensorflow placeholder for training label
     :param keep_prob: probability of dropout
+    :param iter: iteration time for training
     :return: y_conv: target function
     """
     def weight_variable(shape):
@@ -92,7 +94,7 @@ def small_convolutional_neural_network(data, sess, x, y_, keep_prob):
 
     sess.run(tf.global_variables_initializer())
     # start training
-    for i in range(20000):
+    for i in range(iter):
         batch = data.train.next_batch(50)
         if i % 100 == 0:
             train_accuracy = accuracy.eval(feed_dict={x: batch[0], y_: batch[1], keep_prob: 1.0})
