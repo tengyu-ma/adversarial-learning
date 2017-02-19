@@ -29,7 +29,7 @@ print(accuracy.eval(feed_dict={x: x_test_normal, y_: y_test_normal}))
 # adversarial case
 # add "fast gradient sign method noise" to the test data
 epsilon = 0.1  # noise rate, adjust this number to observe different results.
-J = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y))  # cost function
+J = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y))  # cost function (cross entropy)
 x_test_adversarial = fast_gradient_sign_method(J, x, y_, x_test_normal, y_test_normal, sess, epsilon)
 y_test_adversarial = y_test_normal  # y_test_adversarial_ is same as the normal one
 print('Accuracy of Adversarial test example')
@@ -38,7 +38,7 @@ print(accuracy.eval(feed_dict={x: x_test_adversarial, y_: y_test_adversarial}))
 """----- Small convolutional neural network -----"""
 print('===== Small Convolutional Neural Network =====')
 keep_prob = tf.placeholder(tf.float32)  # dropout probability to avoid overfitting
-iter = 20000  # iteration number for training
+iter = 200  # iteration number for training
 y_conv = small_convolutional_neural_network(mnist, sess, x, y_, keep_prob, iter)
 
 # evaluate the model
@@ -51,9 +51,10 @@ print(accuracy.eval(feed_dict={x: x_test_normal, y_: y_test_normal, keep_prob: 1
 # adversarial case
 # add "fast gradient sign method noise" to the test data
 epsilon = 0.25  # noise rate, adjust this number to observe different results.
-J = cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y_conv))  # cost function
+drop_out = True
+J = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y_conv))  # cost function (cross entropy)
 # adversarial case
-x_test_adversarial = fast_gradient_sign_method(J, x, y_conv, x_test_normal, y_test_normal, sess, epsilon)
+x_test_adversarial = fast_gradient_sign_method(J, x, y_, x_test_normal, y_test_normal, sess, keep_prob, drop_out, epsilon)
 y_test_adversarial = y_test_normal  # y_test_adversarial_ is same as the normal one
 
 print('Accuracy of Adversarial test example')
