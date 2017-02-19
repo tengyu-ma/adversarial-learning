@@ -1,13 +1,37 @@
-2017-02-19 09:52:02,000 test_data   accuracy    confidence
-2017-02-19 09:52:02,402 ===== Linear_Softmax_GradientDescentOptimizer 1000 iteration =====
-2017-02-19 09:52:03,452 normal      0.9165      0.896994
-2017-02-19 09:52:04,800 adversarial	0.0918      0.794997
-2017-02-19 09:52:04,802 ===== ReLU_Softmax_AdamOptimizer 1000 iteration =====
-2017-02-19 09:54:17,077 normal      0.9606      0.951858
-2017-02-19 09:54:53,101 adversarial	0.0464      0.77403
-2017-02-19 10:00:59,623 ===== Linear_Softmax_GradientDescentOptimizer 1000 iteration =====
-2017-02-19 10:01:00,657 normal		0.9175		0.898471
-2017-02-19 10:01:02,056 adversarial	0.0822		0.801891
-2017-02-19 10:01:02,058 ===== ReLU_Softmax_AdamOptimizer 1000 iteration =====
-2017-02-19 10:03:03,495 normal		0.965		0.953986
-2017-02-19 10:03:32,485 adversarial	0.0342		0.796919
+2017-02-19 09:52:02,000 test_data   accuracy    confidence  noise_rate
+2017-02-19 13:30:28,272 ===== Linear_Softmax_GradientDescentOptimizer 1000 iteration =====
+2017-02-19 13:30:32,071 normal		0.9151		0.897903
+2017-02-19 13:30:33,457 adversarial	0.086		0.812189    0.25
+2017-02-19 13:30:33,459 ===== ReLU_Softmax_AdamOptimizer 1000 iteration =====
+2017-02-19 13:30:45,985 normal		0.9686		0.955398
+2017-02-19 13:30:49,741 adversarial	0.093		0.768299    0.25
+2017-02-19 13:32:00,010 ===== Linear_Softmax_GradientDescentOptimizer 1000 iteration =====
+2017-02-19 13:32:02,359 normal		0.9164		0.896036
+2017-02-19 13:32:03,712 adversarial	0.1027		0.795159    0.25
+2017-02-19 13:32:03,714 ===== ReLU_Softmax_AdamOptimizer 20000 iteration =====
+2017-02-19 13:35:21,927 normal		0.9915		0.995176
+2017-02-19 13:35:25,764 adversarial	0.2107		0.926771    0.25
+2017-02-19 13:38:44,103 ===== Linear_Softmax_GradientDescentOptimizer 1000 iteration =====
+2017-02-19 13:38:46,798 normal		0.9199		0.899822
+2017-02-19 13:38:51,864 adversarial	0.0869		0.796282    0.25
+2017-02-19 13:38:51,864 ===== ReLU_Softmax_AdamOptimizer 20000 iteration =====
+2017-02-19 13:42:04,769 normal		0.9926		0.995268
+2017-02-19 13:42:18,925 adversarial	0.1833		0.914837    0.25
+2017-02-19 13:48:48,661 ===== Linear_Softmax_GradientDescentOptimizer 1000 iteration =====
+2017-02-19 13:48:51,232 normal		0.916		0.896501
+2017-02-19 13:48:52,569 adversarial	0.0944		0.805693	0.1
+2017-02-19 13:48:52,571 ===== ReLU_Softmax_AdamOptimizer 20000 iteration =====
+2017-02-19 13:52:03,710 normal		0.9922		0.995112
+2017-02-19 13:52:07,398 adversarial	0.5225		0.905558	0.1
+2017-02-19 13:52:45,855 ===== Linear_Softmax_GradientDescentOptimizer 1000 iteration =====
+2017-02-19 13:52:48,200 normal		0.9227		0.895955
+2017-02-19 13:52:49,561 adversarial	0.0846		0.802204	0.1
+2017-02-19 13:52:49,562 ===== ReLU_Softmax_AdamOptimizer 1000 iteration =====
+2017-02-19 13:53:01,110 normal		0.9595		0.948608
+2017-02-19 13:53:04,806 adversarial	0.0525		0.792085	0.25
+2017-02-19 16:06:46,033 ===== Linear_Softmax_GradientDescentOptimizer 1000 iteration =====
+2017-02-19 16:06:48,399 normal		0.9164		0.899095
+2017-02-19 16:06:49,727 adversarial	0.0909		0.795627    0.1
+2017-02-19 16:06:49,729 ===== ReLU_Softmax_AdamOptimizer 1000 iteration =====
+2017-02-19 16:07:01,261 normal		0.9628		0.951884
+2017-02-19 16:07:04,983 adversarial	0.1084		0.77269	    0.25

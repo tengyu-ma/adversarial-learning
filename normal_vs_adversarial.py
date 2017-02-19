@@ -46,7 +46,7 @@ class NormalVsAdversarial:
         accuracy, avg_confidence = self.evaluate(x_test_adversarial, y_test_adversarial)
         print('* Adversarial Test\nAccuracy\tConfidence')
         print('%s\t\t%s' % (accuracy, avg_confidence))
-        logging.info('%s\t%s\t\t%s' % ('adversarial', accuracy, avg_confidence))
+        logging.info('%s\t%s\t\t%s\t%s' % ('adversarial', accuracy, avg_confidence, epsilon))
 
     def adversarialize(self, adversarial_method_name, x_test_normal, y_test_normal, epsilon=0.1):
         """
