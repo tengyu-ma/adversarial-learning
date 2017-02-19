@@ -11,3 +11,9 @@
 2017-02-19 10:01:02,058 ===== ReLU_Softmax_AdamOptimizer 1000 iteration =====
 2017-02-19 10:03:03,495 normal		0.965		0.953986
 2017-02-19 10:03:32,485 adversarial	0.0342		0.796919
+2017-02-19 15:50:01,870 ===== Linear_Softmax_GradientDescentOptimizer 1000 iteration =====
+2017-02-19 15:50:03,083 normal		0.9117		0.892975
+2017-02-19 15:50:04,486 adversarial	0.0808		0.813919
+2017-02-19 15:50:04,487 ===== ReLU_Softmax_AdamOptimizer 1000 iteration =====
+2017-02-19 15:52:23,538 normal		0.9611		0.950573
+2017-02-19 15:52:56,342 adversarial	0.0652		0.771153
