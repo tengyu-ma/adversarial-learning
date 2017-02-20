@@ -20,6 +20,7 @@ def fast_gradient_sign_method(J, x, y_, x_test, y_test, sess, keep_prob, epsilon
     sign_nabla_J = tf.sign(nabla_J)  # calculate the sign of the gradient of cost function
     eta = tf.multiply(sign_nabla_J, epsilon)  # multiply epsilon the sign of the gradient of cost function
     x_test_adversarial = np.array([])
+    noise = np.array([])
 
     test_size = x_test.shape[0]
     test_batch = 1000
@@ -31,7 +32,9 @@ def fast_gradient_sign_method(J, x, y_, x_test, y_test, sess, keep_prob, epsilon
         temp = sess.run(tf.add(x_temp, eta_flatten))  # add noise to test data
         if not x_test_adversarial.size:
             x_test_adversarial = temp
+            noise = eta_flatten
         else:
             x_test_adversarial = np.vstack((x_test_adversarial, temp))
+            noise = np.vstack((noise, eta_flatten))
 
-    return x_test_adversarial
+    return x_test_adversarial, noise
