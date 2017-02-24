@@ -66,8 +66,8 @@ class NormalVsAdversarial:
         adversarial_method = getattr(adversarial_generator, adversarial_method_name)
         J = self.cost_function  # cost function (cross entropy)
         x_test_adversarial, noise = adversarial_method(J, x, y_, x_test_normal, y_test_normal, sess, keep_prob, epsilon)
-        y_test_adversarial = sess.run(y, feed_dict={x: x_test_adversarial,
-                                                    keep_prob: 1.0})  # y_test_adversarial is the value calculated by network
+        # y_test_adversarial is the value calculated by network
+        y_test_adversarial = sess.run(y, feed_dict={x: x_test_adversarial, keep_prob: 1.0})
         return x_test_adversarial, y_test_adversarial, noise
 
     def evaluate(self, x_test, y_test):
