@@ -41,6 +41,7 @@ def ReLU_Softmax_AdamOptimizer(data, sess, x, y_, keep_prob, iter=20000):
     :param iter: iteration time for training
     :return: y_conv: target function / predicted value
     """
+
     def weight_variable(shape):
         initial = tf.truncated_normal(shape, stddev=0.1)
         return tf.Variable(initial)
@@ -115,6 +116,7 @@ def Maxout_Softmax_AdamOptimizer(data, sess, x, y_, keep_prob, iter=20000):
     :param iter: iteration time for training
     :return: y_conv: target function / predicted value
     """
+
     def weight_variable(shape):
         initial = tf.truncated_normal(shape, stddev=0.1)
         return tf.Variable(initial)

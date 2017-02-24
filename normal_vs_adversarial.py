@@ -46,7 +46,8 @@ class NormalVsAdversarial:
         data, sess, x, y_, keep_prob = self.data, self.sess, self.x, self.y_, self.keep_prob
         x_test_normal = data.test.images
         y_test_normal = data.test.labels
-        x_test_adversarial, y_test_adversarial, noise = self.adversarialize('fast_gradient_sign_method', x_test_normal, y_test_normal, epsilon)
+        x_test_adversarial, y_test_adversarial, noise = self.adversarialize('fast_gradient_sign_method', x_test_normal,
+                                                                            y_test_normal, epsilon)
         accuracy, avg_confidence = self.evaluate(x_test_adversarial, y_test_normal)
         print('* Adversarial Test\nAccuracy\tConfidence')
         print('%s\t\t%s' % (accuracy, avg_confidence))
@@ -65,14 +66,16 @@ class NormalVsAdversarial:
         adversarial_method = getattr(adversarial_generator, adversarial_method_name)
         J = self.cost_function  # cost function (cross entropy)
         x_test_adversarial, noise = adversarial_method(J, x, y_, x_test_normal, y_test_normal, sess, keep_prob, epsilon)
-        y_test_adversarial = sess.run(y, feed_dict={x: x_test_adversarial, keep_prob: 1.0})  # y_test_adversarial is the value calculated by network
+        y_test_adversarial = sess.run(y, feed_dict={x: x_test_adversarial,
+                                                    keep_prob: 1.0})  # y_test_adversarial is the value calculated by network
         return x_test_adversarial, y_test_adversarial, noise
 
     def evaluate(self, x_test, y_test):
         # evaluate the model
         data, sess, x, y_, y, keep_prob = self.data, self.sess, self.x, self.y_, self.y, self.keep_prob
         correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
-        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32)).eval(feed_dict={x: x_test, y_: y_test, keep_prob: 1.0})
+        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32)).eval(
+            feed_dict={x: x_test, y_: y_test, keep_prob: 1.0})
         # accuracy = accuracy.eval(feed_dict={x: x_test, y_: y_test, keep_prob: 1.0})
         avg_confidence = sess.run(tf.reduce_mean(tf.reduce_max(y, axis=1)),
                                   feed_dict={x: x_test, y_: y_test, keep_prob: 1.0})
