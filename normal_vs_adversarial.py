@@ -8,7 +8,7 @@ import learning_strategy
 import numpy as np
 import logging
 import random
-import sys
+import os
 
 
 class NormalVsAdversarial:
@@ -30,7 +30,18 @@ class NormalVsAdversarial:
         learning_model = getattr(learning_strategy, learning_strategy_name)
         # initialize local variables
         data, sess, x, y_, keep_prob, iter = self.data, self.sess, self.x, self.y_, self.keep_prob, self.iter
-        self.y, self.cost_function = learning_model(data, self.sess, x, y_, keep_prob, iter)
+        self.y, self.cost_function = learning_model(data, self.sess, x, y_, keep_prob, iter, 0)
+        # save the model
+        save_path = ".%scheckpoint%s%s.ckpt" % (os.sep, os.sep, learning_strategy_name)
+        saver = tf.train.Saver()
+        save_path = saver.save(NvA.sess, save_path)
+        print("[+] Model saved in file: %s" % save_path)
+
+    def restore_network(self, learning_strategy_name):
+        logging.info('===== %s %d iteration =====' % (learning_strategy_name, self.iter))
+        learning_model = getattr(learning_strategy, learning_strategy_name)
+        data, sess, x, y_, keep_prob, iter = self.data, self.sess, self.x, self.y_, self.keep_prob, self.iter
+        self.y, self.cost_function = learning_model(data, self.sess, x, y_, keep_prob, iter, 1)
 
     def normal_test(self):
         # normal case
@@ -75,8 +86,8 @@ class NormalVsAdversarial:
         # evaluate the model
         data, sess, x, y_, y, keep_prob = self.data, self.sess, self.x, self.y_, self.y, self.keep_prob
         correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
-        accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32)).eval(
-            feed_dict={x: x_test, y_: y_test, keep_prob: 1.0})
+        tmp = tf.reduce_mean(tf.cast(correct_prediction, "float"))
+        accuracy = sess.run(tmp, feed_dict={x: x_test, y_: y_test, keep_prob: 1.0})
         # accuracy = accuracy.eval(feed_dict={x: x_test, y_: y_test, keep_prob: 1.0})
         avg_confidence = sess.run(tf.reduce_mean(tf.reduce_max(y, axis=1)),
                                   feed_dict={x: x_test, y_: y_test, keep_prob: 1.0})
@@ -113,9 +124,9 @@ class NormalVsAdversarial:
 
 if __name__ == '__main__':
     # decide whether to start a new training or load the parameters from the result before
-    new_training = 1
-    output_log = False
-    output_img = False
+    new_training = False
+    output_log = True
+    output_img = True
 
     # log file to save the network type, accuracy and average confidence
     logging.basicConfig(filename='normal_vs_adversarial.log', format='%(asctime)s %(message)s', level=logging.DEBUG)
@@ -127,29 +138,13 @@ if __name__ == '__main__':
 
     NvA = NormalVsAdversarial()
     if new_training:
-        NvA.set_iter(200)
+        NvA.set_iter(20000)
         NvA.run_training(training_algorithm)
-        print(NvA.iter)
-        saver = tf.train.Saver()
-        model_path = sys.path[0] + '\%s.ckpt' % training_algorithm
-        save_path = saver.save(NvA.sess, model_path)
-        print("[+] Model saved in file: %s" % save_path)
     else:
-        NvA.set_iter(100)  # initialize the variables here for restoring
-        NvA.run_training(training_algorithm)
-        saver = tf.train.import_meta_graph('ReLU_Softmax_AdamOptimizer.ckpt.meta')
-        load_path = saver.restore(NvA.sess, tf.train.latest_checkpoint('./'))
-        all_vars = tf.get_collection('vars')
-        print(all_vars)
-        for v in all_vars:
-            v_ = NvA.sess.run(v)
-            print(v_)
-        print(saver)
-        # load_path = saver.restore(NvA.sess, model_path)
-        print("[+] Model restored from %s" % load_path)
+        NvA.restore_network(training_algorithm)
 
-    # NvA.normal_test()
-    # NvA.adversarial_test(0.25)
+    NvA.normal_test()
+    NvA.adversarial_test(0.25)
 
     if output_img:
         NvA.save_NvA_images('MNIST_data', 100)
