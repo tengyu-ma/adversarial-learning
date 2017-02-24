@@ -98,9 +98,9 @@ def ReLU_Softmax_AdamOptimizer(data, sess, x, y_, keep_prob, iter=20000):
     for i in range(iter):
         batch = data.train.next_batch(50)
         if i % 100 == 0:
-            train_accuracy = accuracy.eval(feed_dict={x: batch[0], y_: batch[1], keep_prob: 1.0})
+            train_accuracy = sess.run(accuracy, feed_dict={x: batch[0], y_: batch[1], keep_prob: 1.0})
             print("step %d, training accuracy %g" % (i, train_accuracy))
-        train_step.run(feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
+        sess.run(train_step, feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
 
     return tf.nn.softmax(y_conv), cross_entropy
 
@@ -173,7 +173,7 @@ def Maxout_Softmax_AdamOptimizer(data, sess, x, y_, keep_prob, iter=20000):
     for i in range(iter):
         batch = data.train.next_batch(50)
         if i % 100 == 0:
-            train_accuracy = accuracy.eval(feed_dict={x: batch[0], y_: batch[1], keep_prob: 1.0})
+            train_accuracy = sess.run(accuracy, feed_dict={x: batch[0], y_: batch[1], keep_prob: 1.0})
             print("step %d, training accuracy %g" % (i, train_accuracy))
         train_step.run(feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
 

@@ -8,12 +8,13 @@ import learning_strategy
 import numpy as np
 import logging
 import random
+import sys
 
 
 class NormalVsAdversarial:
     def __init__(self, data_set_name='MNIST_data', iter=1000):
         self.data = input_data.read_data_sets(data_set_name, one_hot=True)  # dataset
-        self.sess = tf.InteractiveSession()  # tensorflow session
+        self.sess = tf.Session()  # tensorflow session
         self.x = tf.placeholder(tf.float32, shape=[None, 784])  # true training data
         self.y_ = tf.placeholder(tf.float32, shape=[None, 10])  # true value
         self.y = None  # predicted value by learning
@@ -111,17 +112,46 @@ class NormalVsAdversarial:
 
 
 if __name__ == '__main__':
+    # decide whether to start a new training or load the parameters from the result before
+    new_training = 1
+    output_log = False
+    output_img = False
+
     # log file to save the network type, accuracy and average confidence
     logging.basicConfig(filename='normal_vs_adversarial.log', format='%(asctime)s %(message)s', level=logging.DEBUG)
+    if not output_log:
+        logging.disable(logging.INFO)
+
+    training_algorithm = 'ReLU_Softmax_AdamOptimizer'
+    # training_algorithm = 'Linear_Softmax_GradientDescentOptimizer'
 
     NvA = NormalVsAdversarial()
-    # NvA.run_training('Linear_Softmax_GradientDescentOptimizer')
-    # NvA.normal_test()
-    # NvA.adversarial_test()
-    #
-    NvA.set_iter(20000)
-    NvA.run_training('ReLU_Softmax_AdamOptimizer')
-    NvA.normal_test()
-    NvA.adversarial_test(0.25)
+    if new_training:
+        NvA.set_iter(200)
+        NvA.run_training(training_algorithm)
+        print(NvA.iter)
+        saver = tf.train.Saver()
+        model_path = sys.path[0] + '\%s.ckpt' % training_algorithm
+        save_path = saver.save(NvA.sess, model_path)
+        print("[+] Model saved in file: %s" % save_path)
+    else:
+        NvA.set_iter(100)  # initialize the variables here for restoring
+        NvA.run_training(training_algorithm)
+        saver = tf.train.import_meta_graph('ReLU_Softmax_AdamOptimizer.ckpt.meta')
+        load_path = saver.restore(NvA.sess, tf.train.latest_checkpoint('./'))
+        all_vars = tf.get_collection('vars')
+        print(all_vars)
+        for v in all_vars:
+            v_ = NvA.sess.run(v)
+            print(v_)
+        print(saver)
+        # load_path = saver.restore(NvA.sess, model_path)
+        print("[+] Model restored from %s" % load_path)
 
-    NvA.save_NvA_images('MNIST_data', 100)
+    # NvA.normal_test()
+    # NvA.adversarial_test(0.25)
+
+    if output_img:
+        NvA.save_NvA_images('MNIST_data', 100)
+
+    NvA.sess.close()
