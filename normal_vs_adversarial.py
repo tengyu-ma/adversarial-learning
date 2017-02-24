@@ -1,9 +1,11 @@
 from tensorflow.examples.tutorials.mnist import input_data
 from scipy.misc import toimage
+from pylab import *
 
 import tensorflow as tf
 import adversarial_generator
 import learning_strategy
+import denoising_strategy
 
 import numpy as np
 import logging
@@ -55,15 +57,31 @@ class NormalVsAdversarial:
 
     def adversarial_test(self, epsilon=0.1):
         # adversarial case
+        test_size = 20000
         data, sess, x, y_, keep_prob = self.data, self.sess, self.x, self.y_, self.keep_prob
         x_test_normal = data.test.images
         y_test_normal = data.test.labels
         x_test_adversarial, y_test_adversarial, noise = self.adversarialize('fast_gradient_sign_method', x_test_normal,
                                                                             y_test_normal, epsilon)
-        accuracy, avg_confidence = self.evaluate(x_test_adversarial, y_test_normal)
+        accuracy, avg_confidence = self.evaluate(x_test_adversarial, y_test_normal[0:test_size])
         print('* Adversarial Test\nAccuracy\tConfidence')
         print('%s\t\t%s' % (accuracy, avg_confidence))
         logging.info('%s\t%s\t\t%s\t%s' % ('adversarial', accuracy, avg_confidence, epsilon))
+
+    def adversarial_test_denoised(self, epsilon=0.1, denoise_strategy_name='rof'):
+        test_size = 20000
+        data, sess, x, y_, keep_prob = self.data, self.sess, self.x, self.y_, self.keep_prob
+        x_test_normal = data.test.images
+        y_test_normal = data.test.labels
+        x_test_adversarial, y_test_adversarial, noise = self.adversarialize('fast_gradient_sign_method', x_test_normal,
+                                                                            y_test_normal, epsilon)
+        # the code below will be different from adversarial_test
+        denoise_method = getattr(denoising_strategy, denoise_strategy_name)
+        x_test_denoised = denoise_method(x_test_adversarial)
+        accuracy, avg_confidence = self.evaluate(x_test_denoised, y_test_normal[0:test_size])
+        print('* Adversarial Test with Denoising\nAccuracy\tConfidence')
+        print('%s\t\t%s' % (accuracy, avg_confidence))
+        logging.info('%s\t%s\t\t%s\t%s' % ('denoised', accuracy, avg_confidence, epsilon))
 
     def adversarialize(self, adversarial_method_name, x_test_normal, y_test_normal, epsilon=0.1):
         """
@@ -99,11 +117,19 @@ class NormalVsAdversarial:
         y_ = self.data.test.labels
         y_norm = self.sess.run(self.y, feed_dict={self.x: x, self.keep_prob: 1.0})  # normal case
         x_adv, y_adv, noise = self.adversarialize('fast_gradient_sign_method', x, y_, 0.25)  # adversarial case
-        random_selected = random.sample(range(0, x.shape[0]), image_num)
+        # random_selected = random.sample(range(0, x.shape[0]), image_num)
+        random_selected = random.sample(range(0, 20000), image_num)
+        cnt = 1
         for i in random_selected:
             x_2d = np.reshape(x[i], (28, 28))
             x_adv_2d = np.reshape(x_adv[i], (28, 28))
             noise_ad = np.reshape(noise[i], (28, 28))
+            # figure()
+            # hist(x_adv_2d.flatten(), 128)
+            # show()
+            # x_adv_2d = (x_adv_2d + 0.25) / 1.5
+            # x_adv_2d[x_adv_2d<0.4] = 0
+            # noise_ad = (noise_ad + 0.25) * 2
 
             label_correct = int(np.argmax(y_[i]))
             label_norm = int(np.argmax(y_norm[i]))
@@ -125,8 +151,8 @@ class NormalVsAdversarial:
 if __name__ == '__main__':
     # decide whether to start a new training or load the parameters from the result before
     new_training = False
-    output_log = True
-    output_img = True
+    output_log = False
+    output_img = False
 
     # log file to save the network type, accuracy and average confidence
     logging.basicConfig(filename='normal_vs_adversarial.log', format='%(asctime)s %(message)s', level=logging.DEBUG)
@@ -143,10 +169,11 @@ if __name__ == '__main__':
     else:
         NvA.restore_network(training_algorithm)
 
-    NvA.normal_test()
+    # NvA.normal_test()
     NvA.adversarial_test(0.25)
+    NvA.adversarial_test_denoised(0.25,'threshold_method')
 
     if output_img:
-        NvA.save_NvA_images('MNIST_data', 100)
+        NvA.save_NvA_images('MNIST_data', 3)
 
     NvA.sess.close()

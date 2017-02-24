@@ -24,7 +24,8 @@ def fast_gradient_sign_method(J, x, y_, x_test, y_test, sess, keep_prob, epsilon
 
     test_size = x_test.shape[0]
     test_batch = 1000
-    for i in range(test_size // test_batch):
+    test_loop = test_size // test_batch
+    for i in range(test_loop):
         x_temp = x_test[i * test_batch:(i + 1) * test_batch]
         y_temp = y_test[i * test_batch:(i + 1) * test_batch]
         eta_result = sess.run(eta, feed_dict={x: x_temp, y_: y_temp, keep_prob: 1.0})
@@ -37,5 +38,8 @@ def fast_gradient_sign_method(J, x, y_, x_test, y_test, sess, keep_prob, epsilon
         else:
             x_test_adversarial = np.vstack((x_test_adversarial, temp))
             noise = np.vstack((noise, eta_flatten))
+
+        # if i == 0:
+        #     print(noise[0])
 
     return x_test_adversarial, noise
