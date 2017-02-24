@@ -82,3 +82,16 @@
 2017-02-19 19:10:20,195 ===== ReLU_Softmax_AdamOptimizer 20000 iteration =====
 2017-02-19 19:13:32,959 normal		0.9925		0.994981
 2017-02-19 19:13:36,107 adversarial	0.1779		0.921185	0.25
+2017-02-23 18:46:08,366 ===== ReLU_Softmax_AdamOptimizer 20000 iteration =====
+2017-02-23 19:26:59,947 normal		0.9909		0.995225
+2017-02-23 19:27:40,910 adversarial	0.1619		0.923379	0.25
+2017-02-23 23:48:59,025 ===== ReLU_Softmax_AdamOptimizer 20000 iteration =====
+2017-02-23 23:51:27,004 normal		0.9918		0.994387
+2017-02-23 23:51:29,297 adversarial	0.161		0.928866	0.25
+2017-02-23 23:52:50,581 ===== ReLU_Softmax_AdamOptimizer 20000 iteration =====
+2017-02-23 23:55:18,272 normal		0.9921		0.995095
+2017-02-23 23:55:20,536 adversarial	0.1721		0.909792	0.25
+2017-02-23 23:59:30,190 ===== ReLU_Softmax_AdamOptimizer 1000 iteration =====
+2017-02-24 00:00:20,217 ===== ReLU_Softmax_AdamOptimizer 1000 iteration =====
+2017-02-24 00:00:22,069 normal		0.9921		0.995095
+2017-02-24 00:00:24,335 adversarial	0.1721		0.909792	0.25
