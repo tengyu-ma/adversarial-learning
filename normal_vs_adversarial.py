@@ -150,7 +150,7 @@ class NormalVsAdversarial:
 
 if __name__ == '__main__':
     # decide whether to start a new training or load the parameters from the result before
-    new_training = False
+    new_training = True
     output_log = False
     output_img = False
 
@@ -159,18 +159,18 @@ if __name__ == '__main__':
     if not output_log:
         logging.disable(logging.INFO)
 
-    training_algorithm = 'ReLU_Softmax_AdamOptimizer'
+    training_algorithm = 'Linear_Softmax_GradientDescentOptimizer'
     # training_algorithm = 'Linear_Softmax_GradientDescentOptimizer'
 
     NvA = NormalVsAdversarial()
     if new_training:
-        NvA.set_iter(20000)
+        NvA.set_iter(1000)
         NvA.run_training(training_algorithm)
     else:
         NvA.restore_network(training_algorithm)
 
-    # NvA.normal_test()
-    # NvA.adversarial_test(0.25)
+    NvA.normal_test()
+    NvA.adversarial_test(0.25)
     NvA.adversarial_test_denoised(0.25,'threshold_method')
 
     if output_img:
