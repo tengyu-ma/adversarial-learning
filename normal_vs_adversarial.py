@@ -170,7 +170,7 @@ if __name__ == '__main__':
         NvA.restore_network(training_algorithm)
 
     # NvA.normal_test()
-    NvA.adversarial_test(0.25)
+    # NvA.adversarial_test(0.25)
     NvA.adversarial_test_denoised(0.25,'threshold_method')
 
     if output_img:

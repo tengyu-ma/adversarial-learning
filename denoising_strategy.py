@@ -47,7 +47,7 @@ def threshold_method(im):
     # 0.7473		0.909817
     min_im = im.min()
     max_im = im.max()
-    thres = 2 * min_im / (max_im - min_im) + 0.02
+    thres = 2 * (0 - min_im) / (max_im - min_im) + 0.04
     im = (im - min_im) / (max_im - min_im)
-    im[im < 0.38] = 0
+    im[im < thres] = 0
     return im
