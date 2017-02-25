@@ -61,7 +61,7 @@ class NormalVsAdversarial:
         data, sess, x, y_, keep_prob = self.data, self.sess, self.x, self.y_, self.keep_prob
         x_test_normal = data.test.images
         y_test_normal = data.test.labels
-        x_test_adversarial, y_test_adversarial, noise = self.adversarialize('random_method', x_test_normal,
+        x_test_adversarial, y_test_adversarial, noise = self.adversarialize('fast_gradient_sign_method', x_test_normal,
                                                                             y_test_normal, epsilon)
         accuracy, avg_confidence = self.evaluate(x_test_adversarial, y_test_normal[0:test_size])
         print('* Adversarial Test\nAccuracy\tConfidence')
@@ -73,7 +73,7 @@ class NormalVsAdversarial:
         data, sess, x, y_, keep_prob = self.data, self.sess, self.x, self.y_, self.keep_prob
         x_test_normal = data.test.images
         y_test_normal = data.test.labels
-        x_test_adversarial, y_test_adversarial, noise = self.adversarialize('random_method', x_test_normal,
+        x_test_adversarial, y_test_adversarial, noise = self.adversarialize('fast_gradient_sign_method', x_test_normal,
                                                                             y_test_normal, epsilon)
         # the code below will be different from adversarial_test
         denoise_method = getattr(denoising_strategy, denoise_strategy_name)
