@@ -244,8 +244,10 @@ def ReLU_Softmax_AdTraining(data, sess, x, y_, keep_prob, iter=20000, restore=0)
     b_fc2 = bias_variable([10])
 
     y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
-    # similar cost function as Gradient Descent Optimizer which is cross_entropy
-    cross_entropy = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y_conv))
+    # TODO: the regularized lost function here
+    alpha = 0.5
+    cross_entropy_old = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y_conv))
+    cross_entropy = alpha * cross_entropy_old
     train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
     # evaluate the model for each training step
     correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))

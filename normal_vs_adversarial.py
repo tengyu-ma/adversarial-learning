@@ -61,7 +61,7 @@ class NormalVsAdversarial:
         data, sess, x, y_, keep_prob = self.data, self.sess, self.x, self.y_, self.keep_prob
         x_test_normal = data.test.images
         y_test_normal = data.test.labels
-        x_test_adversarial, y_test_adversarial, noise = self.adversarialize('fast_gradient_sign_method', x_test_normal,
+        x_test_adversarial, y_test_adversarial, noise = self.adversarialize('random_method', x_test_normal,
                                                                             y_test_normal, epsilon)
         accuracy, avg_confidence = self.evaluate(x_test_adversarial, y_test_normal[0:test_size])
         print('* Adversarial Test\nAccuracy\tConfidence')
@@ -73,7 +73,7 @@ class NormalVsAdversarial:
         data, sess, x, y_, keep_prob = self.data, self.sess, self.x, self.y_, self.keep_prob
         x_test_normal = data.test.images
         y_test_normal = data.test.labels
-        x_test_adversarial, y_test_adversarial, noise = self.adversarialize('fast_gradient_sign_method', x_test_normal,
+        x_test_adversarial, y_test_adversarial, noise = self.adversarialize('random_method', x_test_normal,
                                                                             y_test_normal, epsilon)
         # the code below will be different from adversarial_test
         denoise_method = getattr(denoising_strategy, denoise_strategy_name)
@@ -150,7 +150,7 @@ class NormalVsAdversarial:
 
 if __name__ == '__main__':
     # decide whether to start a new training or load the parameters from the result before
-    new_training = True
+    new_training = False
     output_log = False
     output_img = False
 
@@ -159,7 +159,7 @@ if __name__ == '__main__':
     if not output_log:
         logging.disable(logging.INFO)
 
-    training_algorithm = 'Linear_Softmax_GradientDescentOptimizer'
+    training_algorithm = 'ReLU_Softmax_AdamOptimizer'
     # training_algorithm = 'Linear_Softmax_GradientDescentOptimizer'
 
     NvA = NormalVsAdversarial()
