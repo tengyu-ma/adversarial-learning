@@ -42,12 +42,24 @@ def gaussian(im):
     return filters.gaussian_filter(im, 1)
 
 
-def threshold_method(im):
-    # best performance until now
-    # 0.7473		0.909817
+def threshold_method(im, thres = 0.5):
+    # best performance achieved when thres = 0.41, eps = 0.25
+    # 0.9175		0.967378
     min_im = im.min()
     max_im = im.max()
-    thres = 2 * (0 - min_im) / (max_im - min_im) + 0.04
     im = (im - min_im) / (max_im - min_im)
-    im[im < thres] = 0
+    im[im <= thres] = 0
+    im[im > thres] = 1
+    # thres1 = 2 * (0 - min_im) / (max_im - min_im) + adj
+    # thres2 = 1 / (max_im - min_im) - adj
+    # thres2 = 1 - thres1
+    # im = im.flatten()
+    # for i in range(len(im)):
+    #     if im[i] < thres1:
+    #         im[i] = 0
+    #     elif im[i] > thres2:
+    #         im[i] = 1
+    #     else:
+    #         im[i] = (im[i] - 0.5) * (max_im - min_im) + 0.5
+    # im = im.reshape((-1,784))
     return im
