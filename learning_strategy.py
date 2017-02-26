@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 import os
 
 
@@ -244,16 +245,24 @@ def ReLU_Softmax_AdTraining(data, sess, x, y_, keep_prob, iter=20000, restore=0)
     b_fc2 = bias_variable([10])
 
     y_conv = tf.matmul(h_fc1_drop, W_fc2) + b_fc2
-    # TODO: the regularized lost function here
-    alpha = 0.5
-    epsilon = 0.25
     cross_entropy_old = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y_conv))
+
+    # the code before is the same as ReLU_Softmax_AdamOptimizer
+    # the code below will be adding regularization to the lost function which is the main difference
+    # TODO: confused about how to maintain same theta for x and x_adversarial
+    alpha = 1
+    # epsilon = 0.25
+    # nabla_J = tf.gradients(cross_entropy_old, x)
+    # sign_nabla_J = tf.sign(nabla_J)
+    # eta = tf.multiply(sign_nabla_J, epsilon)
+    # eta_flatten = tf.reshape(eta, [-1, 784])
+    # x_adversarial = tf.add(x,eta_flatten)
+
+    # adding regularization
     cross_entropy = tf.multiply(cross_entropy_old, alpha)
-    nabla_J = tf.gradients(cross_entropy_old, x)
-    sign_nabla_J = tf.sign(nabla_J)
-    eta = tf.multiply(sign_nabla_J, epsilon)
+
+    # the code below is the same as ReLU_Softmax_AdamOptimizer
     train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
-    # evaluate the model for each training step
     correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
@@ -265,10 +274,6 @@ def ReLU_Softmax_AdTraining(data, sess, x, y_, keep_prob, iter=20000, restore=0)
             if i % 100 == 0:
                 train_accuracy = sess.run(accuracy, feed_dict={x: batch[0], y_: batch[1], keep_prob: 1.0})
                 print("step %d, training accuracy %g" % (i, train_accuracy))
-            eta_result = sess.run(eta, feed_dict={x: batch[0], y_: batch[1], keep_prob: 1.0})
-            eta_flatten = eta_result[0]
-            x_new = sess.run(tf.add(batch[0], eta_flatten))
-            # cross_entropy_temp =
             sess.run(train_step, feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})
     else:
         saver = tf.train.Saver()
