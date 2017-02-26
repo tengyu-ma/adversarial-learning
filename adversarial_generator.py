@@ -53,7 +53,7 @@ def random_method(J, x, y_, x_test, y_test, sess, keep_prob, epsilon=0.1):
         x_temp = x_test[i * test_batch:(i + 1) * test_batch]
         y_temp = y_test[i * test_batch:(i + 1) * test_batch]
         # since we only have 1 row, we need to flat the eta. e.g. [[[a1,a2,..,an]]] to [[a1,a2,..,an]]
-        eta_flatten = [random.choice([-1, 1])*epsilon for i in range(28 * 28)]
+        eta_flatten = [random.choice([-1, 1]) * epsilon for i in range(28 * 28)]
         temp = sess.run(tf.add(x_temp, eta_flatten))  # add noise to test data
         if not x_test_adversarial.size:
             x_test_adversarial = temp

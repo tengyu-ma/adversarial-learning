@@ -198,8 +198,8 @@ def Maxout_Softmax_AdamOptimizer(data, sess, x, y_, keep_prob, iter=20000, resto
 
     return tf.nn.softmax(y_conv), cross_entropy
 
-def ReLU_Softmax_AdTraining(data, sess, x, y_, keep_prob, iter=20000, restore=0):
 
+def ReLU_Softmax_AdTraining(data, sess, x, y_, keep_prob, iter=20000, restore=0):
     def weight_variable(shape):
         initial = tf.truncated_normal(shape, stddev=0.1)
         return tf.Variable(initial)
@@ -248,7 +248,7 @@ def ReLU_Softmax_AdTraining(data, sess, x, y_, keep_prob, iter=20000, restore=0)
     alpha = 0.5
     epsilon = 0.25
     cross_entropy_old = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y_conv))
-    cross_entropy = tf.multiply(cross_entropy_old,alpha)
+    cross_entropy = tf.multiply(cross_entropy_old, alpha)
     nabla_J = tf.gradients(cross_entropy_old, x)
     sign_nabla_J = tf.sign(nabla_J)
     eta = tf.multiply(sign_nabla_J, epsilon)

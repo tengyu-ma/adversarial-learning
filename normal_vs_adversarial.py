@@ -69,7 +69,7 @@ class NormalVsAdversarial:
         print('%s\t\t%s' % (accuracy, avg_confidence))
         logging.info('%s\t%s\t\t%s\t%s' % ('adversarial', accuracy, avg_confidence, epsilon))
 
-    def adversarial_test_denoised(self, epsilon=0.1, denoise_strategy_name='rof', para = 0.5):
+    def adversarial_test_denoised(self, epsilon=0.1, denoise_strategy_name='rof', para=0.5):
         test_size = 20000
         data, sess, x, y_, keep_prob = self.data, self.sess, self.x, self.y_, self.keep_prob
         x_test_normal = data.test.images
@@ -192,8 +192,8 @@ if __name__ == '__main__':
     else:
         NvA.restore_network(training_algorithm)
 
-    # NvA.normal_test()
-    # NvA.adversarial_test(0.25)
+    NvA.normal_test()
+    NvA.adversarial_test(0.25)
     NvA.adversarial_test_denoised(0.25, 'threshold_method', 0.5)
 
     # eps = 0.35
