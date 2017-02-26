@@ -1,5 +1,6 @@
 from numpy import *
 from scipy.ndimage import filters
+import cv2
 
 
 def rof(im, U_init, tolerance=0.1, tau=0.125, tv_weight=100):
@@ -43,13 +44,23 @@ def gaussian(im):
 
 
 def threshold_method(im, thres = 0.5):
-    # best performance achieved when thres = 0.41, eps = 0.25
-    # 0.9175		0.967378
+    # best performance achieved when thres = 0.41, eps = 0.25, dilate with kernel (2,2)
+    # 0.9394		0.975262
     min_im = im.min()
     max_im = im.max()
     im = (im - min_im) / (max_im - min_im)
     im[im <= thres] = 0
     im[im > thres] = 1
+
+    kernel = ones((2, 2), uint8)
+    for i in range(len(im)):
+        img = im[i].reshape(28,28)
+        # tmp = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)  # good with (1,2) kernel
+        # tmp = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)  # not good
+        # tmp = cv2.erode(img,kernel,iterations = 1)  # not good
+        tmp = cv2.dilate(img, kernel, iterations=1)  # best with (2,2) kernel
+        im[i] = tmp.flatten()
+
     # thres1 = 2 * (0 - min_im) / (max_im - min_im) + adj
     # thres2 = 1 / (max_im - min_im) - adj
     # thres2 = 1 - thres1

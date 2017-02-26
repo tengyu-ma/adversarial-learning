@@ -11,6 +11,7 @@ import numpy as np
 import logging
 import random
 import os
+import cv2
 
 
 class NormalVsAdversarial:
@@ -79,7 +80,7 @@ class NormalVsAdversarial:
         denoise_method = getattr(denoising_strategy, denoise_strategy_name)
         x_test_denoised = denoise_method(x_test_adversarial, para)
         accuracy, avg_confidence = self.evaluate(x_test_denoised, y_test_normal[0:test_size])
-        print('* Adversarial Test with Denoising\nAccuracy\tConfidence')
+        print('* Adversarial Test with Denoising eps = %f, thres = %f\nAccuracy\tConfidence' % (epsilon, para))
         print('%s\t\t%s' % (accuracy, avg_confidence))
         logging.info('%s\t%s\t\t%s\t%s' % ('denoised', accuracy, avg_confidence, epsilon))
 
@@ -123,12 +124,22 @@ class NormalVsAdversarial:
             x_2d = np.reshape(x[i], (28, 28))
             x_adv_2d = np.reshape(x_adv[i], (28, 28))
             noise_ad = np.reshape(noise[i], (28, 28))
-            figure()
-            hist(x_adv_2d.flatten(), 128)
-            show()
+            # denoised = np.reshape(denoising_strategy.threshold_method(x_adv[i],0.4), (28,28))
             # x_adv_2d = (x_adv_2d + 0.25) / 1.5
             # x_adv_2d[x_adv_2d<0.4] = 0
             # noise_ad = (noise_ad + 0.25) * 2
+
+            # kernel = np.ones((2, 1), np.uint8)
+            # # erosion = cv2.erode(denoised,kernel,iterations = 1)
+            # # opening = cv2.morphologyEx(denoised, cv2.MORPH_OPEN, kernel)
+            # closing = cv2.morphologyEx(denoised, cv2.MORPH_CLOSE, kernel)
+            # plt.subplot(1, 3, 1)
+            # plt.imshow(x_2d, 'gray')
+            # plt.subplot(1, 3, 2)
+            # plt.imshow(denoised, 'gray')
+            # plt.subplot(1, 3, 3)
+            # plt.imshow(closing, 'gray')
+            # plt.show()
 
             label_correct = int(np.argmax(y_[i]))
             label_norm = int(np.argmax(y_norm[i]))
@@ -139,6 +150,7 @@ class NormalVsAdversarial:
             self.save_image(x_2d, 'images\%d_%d_%.4f_%s' % (i, label_norm, conf_norm, 'nom'))
             self.save_image(x_adv_2d, 'images\%d_%d_%.4f_%s' % (i, label_adv, conf_adv, 'adv'))
             self.save_image(noise_ad, 'images\%d_%d_%s' % (i, label_correct, 'noise'))
+            # self.save_image(denoised, 'images\%d_%d_%s' % (i, label_correct, 'denoised'))
 
     def test_Images(self, image_num):
         x = self.data.test.images
@@ -182,10 +194,11 @@ if __name__ == '__main__':
 
     # NvA.normal_test()
     # NvA.adversarial_test(0.25)
-    for i in range(20,60,10):
-        print(i)
-        NvA.adversarial_test_denoised(0.25,'threshold_method', i*0.01)
+    NvA.adversarial_test_denoised(0.25, 'threshold_method', 0.5)
 
+    # eps = 0.35
+    # for thres in range(0,8):
+    #     NvA.adversarial_test_denoised(eps,'threshold_method', 0.4 + thres*0.001)
     # NvA.test_Images(3)
 
     if output_img:
