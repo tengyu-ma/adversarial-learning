@@ -120,7 +120,7 @@ class NormalVsAdversarial:
         x = self.data.test.images[0:test_size]
         y_ = self.data.test.labels[0:test_size]
         y_norm = self.sess.run(self.y, feed_dict={self.x: x, self.keep_prob: 1.0})  # normal case
-        x_adv, y_adv, noise = self.adversarialize('fast_gradient_sign_method', x, y_, 0.25, test_size)  # adversarial case
+        x_adv, y_adv, noise = self.adversarialize('random_method', x, y_, 0.25, test_size)  # adversarial case
         denoised_tmp = denoising_strategy.threshold_method(x)
         # random_selected = random.sample(range(0, x.shape[0]), image_num)
         # selected = random.sample(range(0, 10000), image_num)

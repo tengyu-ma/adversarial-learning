@@ -38,28 +38,36 @@ def fast_gradient_sign_method(J, x, y_, x_test, y_test, sess, keep_prob, epsilon
         else:
             x_test_adversarial = np.vstack((x_test_adversarial, temp))
             noise = np.vstack((noise, eta_result))
-
+    print(eta_result.shape)
     return x_test_adversarial, noise
 
 
-def random_method(J, x, y_, x_test, y_test, sess, keep_prob, epsilon=0.1):
+def random_method(J, x, y_, x_test, y_test, sess, keep_prob, epsilon=0.1, test_size = 1000):
     x_test_adversarial = np.array([])
     noise = np.array([])
+    eta_flatten = np.array([])
 
     test_size = x_test.shape[0]
     test_batch = 1000
     test_loop = test_size // test_batch
+
     for i in range(test_loop):
         x_temp = x_test[i * test_batch:(i + 1) * test_batch]
         y_temp = y_test[i * test_batch:(i + 1) * test_batch]
         # since we only have 1 row, we need to flat the eta. e.g. [[[a1,a2,..,an]]] to [[a1,a2,..,an]]
-        eta_flatten = [random.choice([-1, 1]) * epsilon for i in range(28 * 28)]
+
+        eta_flatten = np.array([random.choice([-1, 1]) * epsilon for i in range(784)])
+        for _ in range(1,test_batch):
+            tmp1 = np.array([random.choice([-1, 1]) * epsilon for i in range(784)])
+            eta_flatten = np.vstack((eta_flatten, tmp1))
+
         temp = sess.run(tf.add(x_temp, eta_flatten))  # add noise to test data
         if not x_test_adversarial.size:
             x_test_adversarial = temp
             noise = eta_flatten
         else:
-            x_test_adversarial = np.vstack((x_test_adversarial, temp))
+            x_test_adversarial = np.append(x_test_adversarial, temp, axis=0)
             noise = np.vstack((noise, eta_flatten))
+
 
     return x_test_adversarial, noise
