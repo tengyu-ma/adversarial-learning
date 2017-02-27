@@ -119,15 +119,16 @@ class NormalVsAdversarial:
         y_norm = self.sess.run(self.y, feed_dict={self.x: x, self.keep_prob: 1.0})  # normal case
         x_adv, y_adv, noise = self.adversarialize('fast_gradient_sign_method', x, y_, 0.25)  # adversarial case
         # random_selected = random.sample(range(0, x.shape[0]), image_num)
-        random_selected = random.sample(range(0, 10000), image_num)
-        for i in random_selected:
+        # selected = random.sample(range(0, 10000), image_num)
+        selected = [1]
+        for i in selected:
             x_2d = np.reshape(x[i], (28, 28))
             x_adv_2d = np.reshape(x_adv[i], (28, 28))
             noise_ad = np.reshape(noise[i], (28, 28))
+            eps = noise_ad.max()
             # denoised = np.reshape(denoising_strategy.threshold_method(x_adv[i],0.4), (28,28))
-            # x_adv_2d = (x_adv_2d + 0.25) / 1.5
-            # x_adv_2d[x_adv_2d<0.4] = 0
-            # noise_ad = (noise_ad + 0.25) * 2
+            x_adv_2d = (x_adv_2d + eps) / (1 + 2 * eps)
+            noise_ad = (noise_ad + eps) * (0.5 / eps)
 
             # kernel = np.ones((2, 1), np.uint8)
             # # erosion = cv2.erode(denoised,kernel,iterations = 1)
@@ -136,10 +137,15 @@ class NormalVsAdversarial:
             # plt.subplot(1, 3, 1)
             # plt.imshow(x_2d, 'gray')
             # plt.subplot(1, 3, 2)
-            # plt.imshow(denoised, 'gray')
+            # plt.imshow(x_adv_2d, 'gray')
             # plt.subplot(1, 3, 3)
-            # plt.imshow(closing, 'gray')
-            # plt.show()
+            # plt.imshow(noise_ad, 'gray')
+
+            plt.subplot(1, 2, 1)
+            plt.hist(x_2d,64)
+            plt.subplot(1, 2, 2)
+            plt.hist(x_adv_2d,64)
+            plt.show()
 
             label_correct = int(np.argmax(y_[i]))
             label_norm = int(np.argmax(y_norm[i]))
@@ -147,9 +153,9 @@ class NormalVsAdversarial:
             label_adv = int(np.argmax(y_adv[i]))
             conf_adv = np.amax(y_adv[i])
 
-            self.save_image(x_2d, 'images\%d_%d_%.4f_%s' % (i, label_norm, conf_norm, 'nom'))
-            self.save_image(x_adv_2d, 'images\%d_%d_%.4f_%s' % (i, label_adv, conf_adv, 'adv'))
-            self.save_image(noise_ad, 'images\%d_%d_%s' % (i, label_correct, 'noise'))
+            # self.save_image(x_2d, 'images\%d_%d_%.4f_%s' % (i, label_norm, conf_norm, 'nom'))
+            # self.save_image(x_adv_2d, 'images\%d_%d_%.4f_%s' % (i, label_adv, conf_adv, 'adv'))
+            # self.save_image(noise_ad, 'images\%d_%d_%s' % (i, label_correct, 'noise'))
             # self.save_image(denoised, 'images\%d_%d_%s' % (i, label_correct, 'denoised'))
 
     def test_Images(self, image_num):
@@ -175,7 +181,7 @@ if __name__ == '__main__':
     # decide whether to start a new training or load the parameters from the result before
     new_training = False
     output_log = False
-    output_img = False
+    output_img = True
 
     # log file to save the network type, accuracy and average confidence
     logging.basicConfig(filename='normal_vs_adversarial.log', format='%(asctime)s %(message)s', level=logging.DEBUG)
@@ -192,9 +198,9 @@ if __name__ == '__main__':
     else:
         NvA.restore_network(training_algorithm)
 
-    NvA.normal_test()
-    NvA.adversarial_test(0.25)
-    NvA.adversarial_test_denoised(0.25, 'threshold_method', 0.5)
+    # NvA.normal_test()
+    # NvA.adversarial_test(0.25)
+    # NvA.adversarial_test_denoised(0.25, 'threshold_method', 0.5)
 
     # eps = 0.35
     # for thres in range(0,8):
