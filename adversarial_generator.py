@@ -38,7 +38,7 @@ def fast_gradient_sign_method(J, x, y_, x_test, y_test, sess, keep_prob, epsilon
         else:
             x_test_adversarial = np.vstack((x_test_adversarial, temp))
             noise = np.vstack((noise, eta_result))
-    print(eta_result.shape)
+
     return x_test_adversarial, noise
 
 
