@@ -6,6 +6,7 @@ import tensorflow as tf
 import adversarial_generator
 import learning_strategy
 import denoising_strategy
+import util
 
 import numpy as np
 import logging
@@ -84,6 +85,19 @@ class NormalVsAdversarial:
         print('* Adversarial Test with Denoising eps = %f, thres = %f\nAccuracy\tConfidence' % (epsilon, para))
         print('%s\t\t%s' % (accuracy, avg_confidence))
         logging.info('%s\t%s\t\t%s\t%s' % ('denoised', accuracy, avg_confidence, epsilon))
+
+    def flipping_test(self):
+        # normal case
+        test_size = 20000
+        data, sess, x, y_, keep_prob = self.data, self.sess, self.x, self.y_, self.keep_prob
+        x_test_normal = data.test.images[0:test_size]
+        y_test_normal = data.test.labels[0:test_size]
+        x_test_flipped = util.flip_black_white(x_test_normal)
+        y_test_flipped = y_test_normal
+        accuracy, avg_confidence = self.evaluate(x_test_flipped, y_test_flipped)
+        print('* Flipping Test\nAccuracy\tConfidence')
+        print('%s\t\t%s' % (accuracy, avg_confidence))
+        logging.info('%s\t\t%s\t\t%s' % ('normal', accuracy, avg_confidence))
 
     def adversarialize(self, adversarial_method_name, x_test_normal, y_test_normal, epsilon=0.1, test_size = 1000):
         """
