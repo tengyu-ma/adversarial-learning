@@ -14,11 +14,6 @@ def threshold_method(im, thres=0.5):
 
     kernel = ones((2, 2), uint8)
 
-    # if isinstance(im[0][0],int):
-    #     img = im.reshape(28, 28)
-    #     tmp = cv2.dilate(img, kernel, iterations=1)
-    #     im = tmp.flatten()
-    # else:
     for i in range(len(im)):
         img = im[i].reshape(28, 28)
         # tmp = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)  # good with (1,2) kernel
