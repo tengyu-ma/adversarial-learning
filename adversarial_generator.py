@@ -3,7 +3,7 @@ import numpy as np
 import random
 
 
-def fast_gradient_sign_method(J, x, y_, x_test, y_test, sess, keep_prob, epsilon=0.1, test_size = 1000):
+def fast_gradient_sign_method(J, x, y_, x_test, y_test, sess, keep_prob, epsilon=0.1):
     """
     A fast gradient sign method to generate adversarial example
     :param J: cost function
@@ -42,7 +42,7 @@ def fast_gradient_sign_method(J, x, y_, x_test, y_test, sess, keep_prob, epsilon
     return x_test_adversarial, noise
 
 
-def random_method(J, x, y_, x_test, y_test, sess, keep_prob, epsilon=0.1, test_size = 1000):
+def random_method(J, x, y_, x_test, y_test, sess, keep_prob, epsilon=0.1):
     x_test_adversarial = np.array([])
     noise = np.array([])
     eta_flatten = np.array([])
