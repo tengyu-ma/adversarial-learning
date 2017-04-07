@@ -75,6 +75,11 @@ class NormalVsAdversarial:
         x_test_normal = data.test.images[0:util.TEST_SIZE]
         y_test_normal = data.test.labels[0:util.TEST_SIZE]
         x_test_adversarial, y_test_adversarial, noise = self.adversarialize(x_test_normal, y_test_normal, epsilon)
+        accuracy, avg_confidence = self.evaluate(x_test_adversarial, y_test_normal)
+        print('* Adversarial Test\nAccuracy\tConfidence')
+        print('%s\t\t%s' % (accuracy, avg_confidence))
+        logging.info('%s\t%s\t\t%s\t%s' % ('adversarial', accuracy, avg_confidence, epsilon))
+
         # the code below will be different from adversarial_test
         if self.denoised_method == 'threshold_method':
             x_test_denoised = ds.threshold_method(x_test_adversarial, thres)
@@ -200,7 +205,6 @@ if __name__ == '__main__':
         NvA.restore_network(training_algorithm)
 
     # NvA.normal_test()
-    NvA.adversarial_test(epsilon)
     NvA.adversarial_test_denoised(epsilon, 0.5)
 
     if output_img:
