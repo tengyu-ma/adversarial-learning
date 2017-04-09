@@ -3,9 +3,9 @@ from scipy.misc import toimage
 from pylab import *
 
 import tensorflow as tf
-import adversarial_generator
+import adversarial_generator as ag
 import learning_strategy
-import denoising_strategy
+import denoising_strategy as ds
 import util
 
 import numpy as np
@@ -26,6 +26,8 @@ class NormalVsAdversarial:
         self.iter = iter  # iteration number for training
         self.dropout = False  # dropout in order to avoid overfitting
         self.keep_prob = tf.placeholder(tf.float32)  # drop out probability of the network
+        self.adv_method = 'fast_gradient_sign_method'
+        self.denoised_method = 'threshold_method'
 
     def run_training(self, learning_strategy_name):
         # run training based on the learning_strategy_name
@@ -49,10 +51,9 @@ class NormalVsAdversarial:
 
     def normal_test(self):
         # normal case
-        test_size = 20000
         data, sess, x, y_, keep_prob = self.data, self.sess, self.x, self.y_, self.keep_prob
-        x_test_normal = data.test.images[0:test_size]
-        y_test_normal = data.test.labels[0:test_size]
+        x_test_normal = data.test.images[0:util.TEST_SIZE]
+        y_test_normal = data.test.labels[0:util.TEST_SIZE]
         accuracy, avg_confidence = self.evaluate(x_test_normal, y_test_normal)
         print('* Normal Test\nAccuracy\tConfidence')
         print('%s\t\t%s' % (accuracy, avg_confidence))
@@ -60,29 +61,33 @@ class NormalVsAdversarial:
 
     def adversarial_test(self, epsilon=0.1):
         # adversarial case
-        test_size = 20000
         data, sess, x, y_, keep_prob = self.data, self.sess, self.x, self.y_, self.keep_prob
-        x_test_normal = data.test.images[0:test_size]
-        y_test_normal = data.test.labels[0:test_size]
-        x_test_adversarial, y_test_adversarial, noise = self.adversarialize('fast_gradient_sign_method', x_test_normal,
-                                                                            y_test_normal, epsilon, test_size)
-        accuracy, avg_confidence = self.evaluate(x_test_adversarial, y_test_normal[0:test_size])
+        x_test_normal = data.test.images[0:util.TEST_SIZE]
+        y_test_normal = data.test.labels[0:util.TEST_SIZE]
+        x_test_adversarial, y_test_adversarial, noise = self.adversarialize(x_test_normal, y_test_normal, epsilon)
+        accuracy, avg_confidence = self.evaluate(x_test_adversarial, y_test_normal)
         print('* Adversarial Test\nAccuracy\tConfidence')
         print('%s\t\t%s' % (accuracy, avg_confidence))
         logging.info('%s\t%s\t\t%s\t%s' % ('adversarial', accuracy, avg_confidence, epsilon))
 
-    def adversarial_test_denoised(self, epsilon=0.1, denoise_strategy_name='rof', para=0.5):
-        test_size = 20000
+    def adversarial_test_denoised(self, epsilon=0.1, thres=0.5):
         data, sess, x, y_, keep_prob = self.data, self.sess, self.x, self.y_, self.keep_prob
-        x_test_normal = data.test.images[0:test_size]
-        y_test_normal = data.test.labels[0:test_size]
-        x_test_adversarial, y_test_adversarial, noise = self.adversarialize('fast_gradient_sign_method', x_test_normal,
-                                                                            y_test_normal, epsilon, test_size)
+        x_test_normal = data.test.images[0:util.TEST_SIZE]
+        y_test_normal = data.test.labels[0:util.TEST_SIZE]
+        x_test_adversarial, y_test_adversarial, noise = self.adversarialize(x_test_normal, y_test_normal, epsilon)
+        accuracy, avg_confidence = self.evaluate(x_test_adversarial, y_test_normal)
+        print('* Adversarial Test\nAccuracy\tConfidence')
+        print('%s\t\t%s' % (accuracy, avg_confidence))
+        logging.info('%s\t%s\t\t%s\t%s' % ('adversarial', accuracy, avg_confidence, epsilon))
+
         # the code below will be different from adversarial_test
-        denoise_method = getattr(denoising_strategy, denoise_strategy_name)
-        x_test_denoised = denoise_method(x_test_adversarial, para)
+        if self.denoised_method == 'threshold_method':
+            x_test_denoised = ds.threshold_method(x_test_adversarial, thres)
+        else:
+            x_test_denoised = ds.threshold_method(x_test_adversarial, thres)
         accuracy, avg_confidence = self.evaluate(x_test_denoised, y_test_normal)
-        print('* Adversarial Test with Denoising eps = %f, thres = %f\nAccuracy\tConfidence' % (epsilon, para))
+
+        print('* Adversarial Test with Denoising eps = %f, thres = %f\nAccuracy\tConfidence' % (epsilon, thres))
         print('%s\t\t%s' % (accuracy, avg_confidence))
         logging.info('%s\t%s\t\t%s\t%s' % ('denoised', accuracy, avg_confidence, epsilon))
 
@@ -99,19 +104,28 @@ class NormalVsAdversarial:
         print('%s\t\t%s' % (accuracy, avg_confidence))
         logging.info('%s\t\t%s\t\t%s' % ('normal', accuracy, avg_confidence))
 
-    def adversarialize(self, adversarial_method_name, x_test_normal, y_test_normal, epsilon=0.1, test_size = 1000):
+    def adversarialize(self, x_test_normal, y_test_normal, epsilon=0.1, adv_name=None):
         """
         adversarial case adding noise to the test data
-        :param adversarial_method_name: the method to add noise
+        :param adv_name: the method to add noise
         :param epsilon: noise rate
         :param x_test_normal: normal test data
         :param y_test_normal: normal test label
         :return: x_test_adversarial, y_test_adversarial: adversarial test data & label
         """
         data, sess, x, y_, y, keep_prob = self.data, self.sess, self.x, self.y_, self.y, self.keep_prob
-        adversarial_method = getattr(adversarial_generator, adversarial_method_name)
         J = self.cost_function  # cost function (cross entropy)
-        x_test_adversarial, noise = adversarial_method(J, x, y_, x_test_normal, y_test_normal, sess, keep_prob, epsilon, test_size)
+
+        # adversarial_method = getattr(ag, adversarial_method_name)
+        if adv_name is None:
+            adv_name = self.adv_method
+
+        if adv_name == 'random_method':
+            x_test_adversarial, noise = ag.random_method(J, x, y_, x_test_normal, y_test_normal, sess, keep_prob,
+                                                         epsilon)
+        else:  # 'fast_gradient_sign_method'
+            x_test_adversarial, noise = ag.fast_gradient_sign_method(J, x, y_, x_test_normal, y_test_normal, sess,
+                                                                     keep_prob, epsilon)
         # y_test_adversarial is the value calculated by network
         y_test_adversarial = sess.run(y, feed_dict={x: x_test_adversarial, keep_prob: 1.0})
         return x_test_adversarial, y_test_adversarial, noise
@@ -122,89 +136,46 @@ class NormalVsAdversarial:
         correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
         tmp = tf.reduce_mean(tf.cast(correct_prediction, "float"))
         accuracy = sess.run(tmp, feed_dict={x: x_test, y_: y_test, keep_prob: 1.0})
-        # accuracy = accuracy.eval(feed_dict={x: x_test, y_: y_test, keep_prob: 1.0})
         avg_confidence = sess.run(tf.reduce_mean(tf.reduce_max(y, axis=1)),
                                   feed_dict={x: x_test, y_: y_test, keep_prob: 1.0})
         return accuracy, avg_confidence
 
-    def save_NvA_images(self, data_set_name, image_num):
-
+    def save_NvA_images(self, eps, image_num):
         assert self.cost_function is not None, "cost function can't be None, please train your network first"
-        test_size = 1000
-        x = self.data.test.images[0:test_size]
-        y_ = self.data.test.labels[0:test_size]
+        x = self.data.test.images[0:util.TEST_SIZE]
+        y_ = self.data.test.labels[0:util.TEST_SIZE]
         y_norm = self.sess.run(self.y, feed_dict={self.x: x, self.keep_prob: 1.0})  # normal case
-        x_adv, y_adv, noise = self.adversarialize('random_method', x, y_, 0.25, test_size)  # adversarial case
-        denoised_tmp = denoising_strategy.threshold_method(x, 0.5)
-        # random_selected = random.sample(range(0, x.shape[0]), image_num)
-        # selected = random.sample(range(0, test_size), image_num)
-        selected = [471]
+        x_adv, y_adv, noise = self.adversarialize(x, y_, eps)  # adversarial case
+        x_denoised_flat = ds.threshold_method(x_adv, 0.5)
+        y_denoised = self.sess.run(self.y, feed_dict={self.x: x_denoised_flat, self.keep_prob: 1.0})
+        selected = list(random.sample(range(util.TEST_SIZE), image_num))
+
         for i in selected:
-            denoised_2d = np.reshape(denoised_tmp[i], (28, 28))
             x_2d = np.reshape(x[i], (28, 28))
             x_adv_2d = np.reshape(x_adv[i], (28, 28))
             noise_ad = np.reshape(noise[i], (28, 28))
+            x_denoised_2d = np.reshape(x_denoised_flat[i], (28, 28))
             eps = noise_ad.max()
 
-            # denoised = np.reshape(denoising_strategy.threshold_method(x_adv[i],0.4), (28,28))
+            # denoised = np.reshape(ds.threshold_method(x_adv[i],0.4), (28,28))
             x_adv_2d = (x_adv_2d + eps) / (1 + 2 * eps)
             noise_ad = (noise_ad + eps) * (0.5 / eps)
-
-            # plt.subplot(1, 3, 1)
-            # plt.imshow(x_2d, 'gray')
-            # plt.subplot(1, 3, 2)
-            # plt.imshow(denoised_2d, 'gray')
-            # kernel = ones((2, 2), uint8)
-            # denoised_2d = cv2.dilate(denoised_2d, kernel, iterations=1)
-            # plt.subplot(1, 3, 3)
-            # plt.imshow(denoised_2d, 'gray')
-            # plt.show()
-
-            # kernel = np.ones((2, 1), np.uint8)
-            # # erosion = cv2.erode(denoised,kernel,iterations = 1)
-            # # opening = cv2.morphologyEx(denoised, cv2.MORPH_OPEN, kernel)
-            # closing = cv2.morphologyEx(denoised, cv2.MORPH_CLOSE, kernel)
-            # plt.subplot(1, 3, 1)
-            # plt.imshow(x_2d, 'gray')
-            # plt.subplot(1, 3, 2)
-            # plt.imshow(x_adv_2d, 'gray')
-            # plt.subplot(1, 3, 3)
-            # plt.imshow(noise_ad, 'gray')
 
             label_correct = int(np.argmax(y_[i]))
             label_norm = int(np.argmax(y_norm[i]))
             conf_norm = np.amax(y_norm[i])
             label_adv = int(np.argmax(y_adv[i]))
             conf_adv = np.amax(y_adv[i])
+            label_denoised = int(np.argmax(y_denoised[i]))
+            conf_denoised = np.amax(y_denoised[i])
 
             self.save_image(x_2d, 'images\%d_%d_%.4f_%s' % (i, label_norm, conf_norm, 'nom'))
             self.save_image(x_adv_2d, 'images\%d_%d_%.4f_%s' % (i, label_adv, conf_adv, 'adv'))
             self.save_image(noise_ad, 'images\%d_%d_%s' % (i, label_correct, 'noise'))
-            self.save_image(denoised_2d, 'images\%d_%d_%s' % (i, label_correct, 'denoised'))
+            self.save_image(x_denoised_2d, 'images\%d_%d_%.4f_%s' % (i, label_denoised, conf_denoised, 'denoised'))
 
-        # denoised_tmp2 = denoising_strategy.threshold_method(x, 0.8)
-        # denoised_2d = np.reshape(denoised_tmp[471], (28, 28))
-        # denoised_2d2 = np.reshape(denoised_tmp2[471], (28, 28))
-        # plt.subplot(1, 2, 1)
-        # plt.imshow(denoised_2d,'gray')
-        # plt.subplot(1, 2, 2)
-        # plt.imshow(denoised_2d2,'gray')
-        # plt.show()
-
-
-    def test_Images(self, image_num):
-        x = self.data.test.images
-        y_ = self.data.test.labels
-        y_norm = self.sess.run(self.y, feed_dict={self.x: x, self.keep_prob: 1.0})  # normal case
-        random_selected = random.sample(range(0, 10000), image_num)
-        for i in random_selected:
-            x_2d = np.reshape(x[i], (28, 28))
-            figure()
-            hist(x_2d.flatten(), 128)
-            show()
-            print(x_2d.min())
-
-    def save_image(self, image_matrix, label):
+    @ staticmethod
+    def save_image(image_matrix, label):
         toimage(image_matrix, cmin=0.0, cmax=1.0).save('%s.jpg' % label)
 
     def set_iter(self, iter):
@@ -216,6 +187,7 @@ if __name__ == '__main__':
     new_training = False
     output_log = False
     output_img = False
+    epsilon = 0.25
 
     # log file to save the network type, accuracy and average confidence
     logging.basicConfig(filename='normal_vs_adversarial.log', format='%(asctime)s %(message)s', level=logging.DEBUG)
@@ -233,15 +205,9 @@ if __name__ == '__main__':
         NvA.restore_network(training_algorithm)
 
     # NvA.normal_test()
-    NvA.adversarial_test(0.35)
-    NvA.adversarial_test_denoised(0.35, 'threshold_method', 0.5)
-
-    # eps = 0.35
-    # for thres in range(0,8):
-    #     NvA.adversarial_test_denoised(eps,'threshold_method', 0.4 + thres*0.001)
-    # NvA.test_Images(3)
+    NvA.adversarial_test_denoised(epsilon, 0.5)
 
     if output_img:
-        NvA.save_NvA_images('MNIST_data', 100)
+        NvA.save_NvA_images(epsilon, 10)
 
     NvA.sess.close()
