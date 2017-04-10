@@ -119,6 +119,7 @@ def ReLU_Softmax_AdamOptimizer(data, sess, x, y_, keep_prob, iter=20000, restore
 
 
 def Maxout_Softmax_AdamOptimizer(data, sess, x, y_, keep_prob, iter=20000, restore=0):
+    # ToDo: the following code is just the copy of ReLU_Softmax_AdamOptimizer. Need to develop.
     """
     a small convolutional neural network
     :param data: dataset
