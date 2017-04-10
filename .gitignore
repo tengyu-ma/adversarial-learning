@@ -6,3 +6,7 @@ __pycache__/
 
 # Image folder
 images/
+
+# Data folder
+ImageNet_data/
+MNIST_data/
