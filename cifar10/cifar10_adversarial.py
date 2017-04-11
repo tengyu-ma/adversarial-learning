@@ -26,22 +26,22 @@ class Cifar:
 
     def evaluate(self):
         """Eval CIFAR-10 for a number of steps."""
-
-        with tf.Graph().as_default() as g:
-
+        with tf.variable_scope('network1') as scope:
+            # Get images and labels for CIFAR-10.
             eval_data = EVAL_DATA == 'test'
-            images, labels, images_org = cifar10.inputs(eval_data=eval_data)
+            images, labels = cifar10.inputs(eval_data=eval_data)
 
-            # Build a Graph that computes the logits predictions from the
-            # inference model.
             logits = cifar10.inference(images)
+
             loss = cifar10.loss(logits, labels)
-            nabla_J = tf.gradients(loss, images)
+            nabla_J = tf.gradients(loss, images)  # apply nabla operator to calculate the gradient
             sign_nabla_J = tf.sign(nabla_J)  # calculate the sign of the gradient of cost function
-            eta_init = tf.multiply(sign_nabla_J, EPS)  # multiply epsilon the sign of the gradient of cost function
-            eta = tf.reshape(eta_init, images._shape)
-            images_with_noise = tf.add(images, eta)
-            # self.image_noise = images_with_noise
+            eta = tf.multiply(sign_nabla_J, EPS)  # multiply epsilon the sign of the gradient of cost function
+            eta_flatten = tf.reshape(eta, images._shape)
+            images_new = tf.add(images, eta_flatten)
+
+            scope.reuse_variables()
+            logits = cifar10.inference(images_new)
 
             # Calculate predictions.
             top_k_op = tf.nn.in_top_k(logits, labels, 1)
@@ -54,10 +54,10 @@ class Cifar:
 
             # Build the summary operation based on the TF collection of Summaries.
             summary_op = tf.summary.merge_all()
-            summary_writer = tf.summary.FileWriter(EVAL_DIR, g)
+
+            summary_writer = tf.summary.FileWriter(EVAL_DIR)
 
             with tf.Session() as sess:
-
                 ckpt = tf.train.get_checkpoint_state(CHECKPOINT_DIR)
                 if ckpt and ckpt.model_checkpoint_path:
                     # Restores from checkpoint
@@ -70,9 +70,11 @@ class Cifar:
                     print('No checkpoint file found')
                     return
 
+                # with tf.variable_scope('top_k_op2') as scope:
+                #     logits2 = cifar10.inference(images_new)
+                #     top_k_op2 = tf.nn.in_top_k(logits2, labels, 1)
                 # Start the queue runners.
                 coord = tf.train.Coordinator()
-
                 try:
                     threads = []
                     for qr in tf.get_collection(tf.GraphKeys.QUEUE_RUNNERS):
@@ -84,12 +86,8 @@ class Cifar:
                     total_sample_count = num_iter * FLAGS.batch_size
                     step = 0
                     while step < num_iter and not coord.should_stop():
+                        images_4d = sess.run(images)
                         predictions = sess.run([top_k_op])
-                        images_4d = np.array(sess.run(images))
-                        images_org_4d = sess.run(images_org)
-                        eta_4d = sess.run(eta)
-                        # images_with_noise_4d = np.array(self.sess.run(images_with_noise))
-                        # images_with_noise_4d = images_4d + eta_4d
                         true_count += np.sum(predictions)
                         step += 1
 
@@ -98,7 +96,7 @@ class Cifar:
                     print('%s: precision @ 1 = %.3f' % (datetime.now(), precision))
 
                     summary = tf.Summary()
-                    summary.ParseFromString(self.sess.run(summary_op))
+                    summary.ParseFromString(sess.run(summary_op))
                     summary.value.add(tag='Precision @ 1', simple_value=precision)
                     summary_writer.add_summary(summary, global_step)
                 except Exception as e:  # pylint: disable=broad-except

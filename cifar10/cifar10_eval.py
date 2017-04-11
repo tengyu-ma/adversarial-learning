@@ -115,7 +115,7 @@ def eval_once(saver, summary_writer, top_k_op, summary_op):
 
 def evaluate():
   """Eval CIFAR-10 for a number of steps."""
-  with tf.Graph().as_default() as g:
+  with tf.variable_scope('network1') as scope:
     # Get images and labels for CIFAR-10.
     eval_data = FLAGS.eval_data == 'test'
     images, labels = cifar10.inputs(eval_data=eval_data)
@@ -136,7 +136,7 @@ def evaluate():
     # Build the summary operation based on the TF collection of Summaries.
     summary_op = tf.summary.merge_all()
 
-    summary_writer = tf.summary.FileWriter(FLAGS.eval_dir, g)
+    summary_writer = tf.summary.FileWriter(FLAGS.eval_dir)
 
     while True:
       eval_once(saver, summary_writer, top_k_op, summary_op)

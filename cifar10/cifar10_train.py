@@ -58,7 +58,7 @@ tf.app.flags.DEFINE_integer('log_frequency', 10,
 
 def train():
   """Train CIFAR-10 for a number of steps."""
-  with tf.Graph().as_default():
+  with tf.variable_scope('network1') as scope:
     global_step = tf.contrib.framework.get_or_create_global_step()
 
     # Get images and labels for CIFAR-10.

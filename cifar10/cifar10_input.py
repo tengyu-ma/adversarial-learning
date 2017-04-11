@@ -229,7 +229,7 @@ def inputs(eval_data, data_dir, batch_size):
 
   # Read examples from files in the filename queue.
   read_input = read_cifar10(filename_queue)
-  reshaped_image = tf.cast(read_input.uint8image, tf.float32)
+  reshaped_image = tf.cast(read_input.uint8image, tf.int32)
 
   height = IMAGE_SIZE
   width = IMAGE_SIZE
