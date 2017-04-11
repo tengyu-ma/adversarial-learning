@@ -182,6 +182,7 @@ def distorted_inputs(data_dir, batch_size):
 
   # Subtract off the mean and divide by the variance of the pixels.
   float_image = tf.image.per_image_standardization(distorted_image)
+  # float_image = distorted_image
 
   # Set the shapes of tensors.
   float_image.set_shape([height, width, 3])
@@ -229,7 +230,7 @@ def inputs(eval_data, data_dir, batch_size):
 
   # Read examples from files in the filename queue.
   read_input = read_cifar10(filename_queue)
-  reshaped_image = tf.cast(read_input.uint8image, tf.int32)
+  reshaped_image = tf.cast(read_input.uint8image, tf.float32)
 
   height = IMAGE_SIZE
   width = IMAGE_SIZE
@@ -241,6 +242,7 @@ def inputs(eval_data, data_dir, batch_size):
 
   # Subtract off the mean and divide by the variance of the pixels.
   float_image = tf.image.per_image_standardization(resized_image)
+  # float_image = resized_image
 
   # Set the shapes of tensors.
   float_image.set_shape([height, width, 3])
@@ -255,4 +257,4 @@ def inputs(eval_data, data_dir, batch_size):
   images, labels = _generate_image_and_label_batch(float_image, read_input.label,
                                          min_queue_examples, batch_size,
                                          shuffle=False)
-  return images, labels
+  return images, labels, read_input.uint8image

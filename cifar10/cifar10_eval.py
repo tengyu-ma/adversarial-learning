@@ -51,7 +51,7 @@ tf.app.flags.DEFINE_string('eval_data', 'test',
                            """Either 'test' or 'train_eval'.""")
 tf.app.flags.DEFINE_string('checkpoint_dir', '/tmp/cifar10_train',
                            """Directory where to read model checkpoints.""")
-tf.app.flags.DEFINE_integer('eval_interval_secs', 60 * 5,
+tf.app.flags.DEFINE_integer('eval_interval_secs', 60 * 10,
                             """How often to run the eval.""")
 tf.app.flags.DEFINE_integer('num_examples', 10000,
                             """Number of examples to run.""")
@@ -115,34 +115,35 @@ def eval_once(saver, summary_writer, top_k_op, summary_op):
 
 def evaluate():
   """Eval CIFAR-10 for a number of steps."""
-  with tf.variable_scope('network1') as scope:
-    # Get images and labels for CIFAR-10.
-    eval_data = FLAGS.eval_data == 'test'
-    images, labels = cifar10.inputs(eval_data=eval_data)
+  with tf.device('/cpu:0'):
+    with tf.variable_scope('network1') as scope:
+      # Get images and labels for CIFAR-10.
+      eval_data = FLAGS.eval_data == 'test'
+      images, labels, org_images = cifar10.inputs(eval_data=eval_data)
 
-    # Build a Graph that computes the logits predictions from the
-    # inference model.
-    logits = cifar10.inference(images)
+      # Build a Graph that computes the logits predictions from the
+      # inference model.
+      logits = cifar10.inference(images)
 
-    # Calculate predictions.
-    top_k_op = tf.nn.in_top_k(logits, labels, 1)
+      # Calculate predictions.
+      top_k_op = tf.nn.in_top_k(logits, labels, 1)
 
-    # Restore the moving average version of the learned variables for eval.
-    variable_averages = tf.train.ExponentialMovingAverage(
-        cifar10.MOVING_AVERAGE_DECAY)
-    variables_to_restore = variable_averages.variables_to_restore()
-    saver = tf.train.Saver(variables_to_restore)
+      # Restore the moving average version of the learned variables for eval.
+      variable_averages = tf.train.ExponentialMovingAverage(
+          cifar10.MOVING_AVERAGE_DECAY)
+      variables_to_restore = variable_averages.variables_to_restore()
+      saver = tf.train.Saver(variables_to_restore)
 
-    # Build the summary operation based on the TF collection of Summaries.
-    summary_op = tf.summary.merge_all()
+      # Build the summary operation based on the TF collection of Summaries.
+      summary_op = tf.summary.merge_all()
 
-    summary_writer = tf.summary.FileWriter(FLAGS.eval_dir)
+      summary_writer = tf.summary.FileWriter(FLAGS.eval_dir)
 
-    while True:
-      eval_once(saver, summary_writer, top_k_op, summary_op)
-      if FLAGS.run_once:
-        break
-      time.sleep(FLAGS.eval_interval_secs)
+      while True:
+        eval_once(saver, summary_writer, top_k_op, summary_op)
+        if FLAGS.run_once:
+          break
+        time.sleep(FLAGS.eval_interval_secs)
 
 
 def main(argv=None):  # pylint: disable=unused-argument

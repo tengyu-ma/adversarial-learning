@@ -16,7 +16,7 @@ EVAL_DIR = '/tmp/cifar10_eval'
 EVAL_DATA = 'test'  # 'train_eval'
 CHECKPOINT_DIR = '/tmp/cifar10_train'
 NUM_EXAMPLES = 10000
-EPS = 0.25
+EPS = 2
 
 
 class Cifar:
@@ -29,8 +29,9 @@ class Cifar:
         with tf.variable_scope('network1') as scope:
             # Get images and labels for CIFAR-10.
             eval_data = EVAL_DATA == 'test'
-            images, labels = cifar10.inputs(eval_data=eval_data)
+            images, labels, org_images = cifar10.inputs(eval_data=eval_data)
 
+            # org_images = tf.cast(org_images, tf.float32)
             logits = cifar10.inference(images)
 
             loss = cifar10.loss(logits, labels)
@@ -87,6 +88,8 @@ class Cifar:
                     step = 0
                     while step < num_iter and not coord.should_stop():
                         images_4d = sess.run(images)
+                        eta_4d = sess.run(eta_flatten)
+                        images_new_4d = sess.run(images_new)
                         predictions = sess.run([top_k_op])
                         true_count += np.sum(predictions)
                         step += 1
@@ -120,5 +123,6 @@ class Cifar:
 if __name__ == '__main__':
     cifar = Cifar()
     cifar.restore_network()
+    # with tf.device('/gpu:0'):
     cifar.evaluate()
     # cifar.evaluate_with_noise()
