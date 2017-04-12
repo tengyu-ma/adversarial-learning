@@ -8,16 +8,19 @@ import time
 
 import numpy as np
 import tensorflow as tf
+import matplotlib as mp
+import matplotlib.pyplot as plt
 
 import cifar10
+import data_helpers
 
 FLAGS = tf.app.flags.FLAGS
 EVAL_DIR = '/tmp/cifar10_eval'
 EVAL_DATA = 'test'  # 'train_eval'
 CHECKPOINT_DIR = '/tmp/cifar10_train'
 NUM_EXAMPLES = 10000
-EPS = 2
-
+EPS = 0.25
+MAX_STEPS = 70
 
 class Cifar:
     def __init__(self):
@@ -29,20 +32,24 @@ class Cifar:
         with tf.variable_scope('network1') as scope:
             # Get images and labels for CIFAR-10.
             eval_data = EVAL_DATA == 'test'
+            data_sets = data_helpers.load_data()
+
             images, labels, org_images = cifar10.inputs(eval_data=eval_data)
+            # images = tf.placeholder(tf.float32, shape=[None, 32, 32, 3], name='images')
+            # labels = tf.placeholder(tf.int32, shape=[None], name='image-labels')
 
             # org_images = tf.cast(org_images, tf.float32)
             logits = cifar10.inference(images)
 
             loss = cifar10.loss(logits, labels)
-            nabla_J = tf.gradients(loss, images)  # apply nabla operator to calculate the gradient
-            sign_nabla_J = tf.sign(nabla_J)  # calculate the sign of the gradient of cost function
-            eta = tf.multiply(sign_nabla_J, EPS)  # multiply epsilon the sign of the gradient of cost function
-            eta_flatten = tf.reshape(eta, images._shape)
-            images_new = tf.add(images, eta_flatten)
-
-            scope.reuse_variables()
-            logits = cifar10.inference(images_new)
+            # nabla_J = tf.gradients(loss, images)  # apply nabla operator to calculate the gradient
+            # sign_nabla_J = tf.sign(nabla_J)  # calculate the sign of the gradient of cost function
+            # eta = tf.multiply(sign_nabla_J, EPS)  # multiply epsilon the sign of the gradient of cost function
+            # eta_flatten = tf.reshape(eta, images._shape)
+            # images_new = tf.add(images, eta_flatten)
+            #
+            # scope.reuse_variables()
+            # logits = cifar10.inference(images_new)
 
             # Calculate predictions.
             top_k_op = tf.nn.in_top_k(logits, labels, 1)
@@ -59,6 +66,12 @@ class Cifar:
             summary_writer = tf.summary.FileWriter(EVAL_DIR)
 
             with tf.Session() as sess:
+                sess.run(tf.global_variables_initializer())
+                # print(FLAGS.batch_size)
+
+                zipped_data = zip(data_sets['images_train'], data_sets['labels_train'])
+                batches = data_helpers.gen_batch(list(zipped_data), FLAGS.batch_size, MAX_STEPS)
+
                 ckpt = tf.train.get_checkpoint_state(CHECKPOINT_DIR)
                 if ckpt and ckpt.model_checkpoint_path:
                     # Restores from checkpoint
@@ -83,16 +96,29 @@ class Cifar:
                                                          start=True))
 
                     num_iter = int(math.ceil(NUM_EXAMPLES / FLAGS.batch_size))
+                    # num_iter = 1
                     true_count = 0  # Counts the number of correct predictions.
                     total_sample_count = num_iter * FLAGS.batch_size
                     step = 0
                     while step < num_iter and not coord.should_stop():
-                        images_4d = sess.run(images)
-                        eta_4d = sess.run(eta_flatten)
-                        images_new_4d = sess.run(images_new)
-                        predictions = sess.run([top_k_op])
+                        batch = next(batches)
+                        images_batch, labels_batch = zip(*batch)
+                        feed_dict = {
+                            images: images_batch,
+                            labels: labels_batch
+                        }
+                        # images_4d = sess.run(images)
+                        # eta_4d = sess.run(eta_flatten)
+                        # images_new_4d = sess.run(images_new)
+                        print("Step: %d" % step)
+                        predictions = sess.run([top_k_op], feed_dict=feed_dict)
                         true_count += np.sum(predictions)
                         step += 1
+
+                    # scale = 128.0 / max(abs(tmp.max()),abs(tmp.min()))
+                    # tmp = tmp * scale + 128.0
+                    # imgplot = plt.imshow(tmp)
+                    # plt.show()
 
                     # Compute precision @ 1.
                     precision = true_count / total_sample_count
