@@ -20,21 +20,10 @@ from __future__ import division
 from __future__ import print_function
 
 import os
+from settings import *
 
 from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
-
-# Process images of this size. Note that this differs from the original CIFAR
-# image size of 32 x 32. If one alters this number, then the entire model
-# architecture will change and any model would need to be retrained.
-IMAGE_SIZE = 24
-ORG_IMAGE_SIZE = 32
-
-# Global constants describing the CIFAR-10 data set.
-NUM_CLASSES = 10
-NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = 50000
-NUM_EXAMPLES_PER_EPOCH_FOR_EVAL = 10000
-
 
 def read_cifar10(filename_queue):
     """Reads and parses examples from CIFAR10 data files.
@@ -222,7 +211,7 @@ def inputs(eval_data, data_dir, batch_size):
                      for i in xrange(1, 6)]
         num_examples_per_epoch = NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN
     else:
-        filenames = [os.path.join(data_dir, 'test_batch_org_noise_50.bin')]
+        filenames = [os.path.join(data_dir, 'test_batch.bin')]
         num_examples_per_epoch = NUM_EXAMPLES_PER_EPOCH_FOR_EVAL
 
     for f in filenames:
