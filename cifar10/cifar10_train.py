@@ -60,88 +60,87 @@ tf.app.flags.DEFINE_integer('log_frequency', 10,
 
 def train():
     """Train CIFAR-10 for a number of steps."""
-    with tf.Graph().as_default():
-        with tf.variable_scope('network1') as scope:
-            global_step = tf.contrib.framework.get_or_create_global_step()
+    with tf.variable_scope('network1') as scope:
+        global_step = tf.contrib.framework.get_or_create_global_step()
 
-            # Get images and labels for CIFAR-10.
-            # image_0 = tf.placeholder(tf.float32, shape=[3072], name='image_0')
-            # label_0 = tf.placeholder(tf.int32, shape=[1], name='label_0')
-            images, labels = cifar10.distorted_inputs()
+        # Get images and labels for CIFAR-10.
+        # image_0 = tf.placeholder(tf.float32, shape=[3072], name='image_0')
+        # label_0 = tf.placeholder(tf.int32, shape=[1], name='label_0')
+        images, labels = cifar10.distorted_inputs()
 
-            # Build a Graph that computes the logits predictions from the
-            # inference model.
-            logits = cifar10.inference(images)
+        # Build a Graph that computes the logits predictions from the
+        # inference model.
+        logits = cifar10.inference(images)
 
-            # Calculate loss.
-            loss = cifar10.loss(logits, labels)
+        # Calculate loss.
+        loss = cifar10.loss(logits, labels)
 
-            # Build a Graph that trains the model with one batch of examples and
-            # updates the model parameters.
-            train_op = cifar10.train(loss, global_step)
+        # Build a Graph that trains the model with one batch of examples and
+        # updates the model parameters.
+        train_op = cifar10.train(loss, global_step)
 
-            # init_op = tf.global_variables_initializer()
-            #
-            # images_batch = list(np.ones([3072]))
-            # labels_batch = [1]
-            #
-            # with tf.Session() as sess:
-            #     sess.run(init_op)
-            #     # sess.run(images, feed_dict={image_0: images_batch})
-            #     print("test")
-            #     coord = tf.train.Coordinator()
-            #     try:
-            #         threads = []
-            #         for qr in tf.get_collection(tf.GraphKeys.QUEUE_RUNNERS):
-            #             threads.extend(qr.create_threads(sess, coord=coord, daemon=True,
-            #                                              start=True))
-            #         # sess.run(image_0, feed_dict={image_0: images_batch})
-            #         # while not coord.should_stop():
-            #         #     sess.run(image_0, feed_dict={image_0: images_batch})
-            #         sess.run(train_op, feed_dict={image_0: np.ones([3072]), label_0: labels_batch})
-            #
-            #     except Exception as e:  # pylint: disable=broad-except
-            #         coord.request_stop(e)
-            #
-            #     coord.request_stop()
-            #     coord.join(threads, stop_grace_period_secs=10)
-                # sess.run(train_op, feed_dict={image_0: images_batch, label_0: labels_batch})
+        # init_op = tf.global_variables_initializer()
+        #
+        # images_batch = list(np.ones([3072]))
+        # labels_batch = [1]
+        #
+        # with tf.Session() as sess:
+        #     sess.run(init_op)
+        #     # sess.run(images, feed_dict={image_0: images_batch})
+        #     print("test")
+        #     coord = tf.train.Coordinator()
+        #     try:
+        #         threads = []
+        #         for qr in tf.get_collection(tf.GraphKeys.QUEUE_RUNNERS):
+        #             threads.extend(qr.create_threads(sess, coord=coord, daemon=True,
+        #                                              start=True))
+        #         # sess.run(image_0, feed_dict={image_0: images_batch})
+        #         # while not coord.should_stop():
+        #         #     sess.run(image_0, feed_dict={image_0: images_batch})
+        #         sess.run(train_op, feed_dict={image_0: np.ones([3072]), label_0: labels_batch})
+        #
+        #     except Exception as e:  # pylint: disable=broad-except
+        #         coord.request_stop(e)
+        #
+        #     coord.request_stop()
+        #     coord.join(threads, stop_grace_period_secs=10)
+            # sess.run(train_op, feed_dict={image_0: images_batch, label_0: labels_batch})
 
-            class _LoggerHook(tf.train.SessionRunHook):
-                """Logs loss and runtime."""
+        class _LoggerHook(tf.train.SessionRunHook):
+            """Logs loss and runtime."""
 
-                def begin(self):
-                    self._step = -1
-                    self._start_time = time.time()
+            def begin(self):
+                self._step = -1
+                self._start_time = time.time()
 
-                def before_run(self, run_context):
-                    self._step += 1
-                    return tf.train.SessionRunArgs(loss)  # Asks for loss value.
+            def before_run(self, run_context):
+                self._step += 1
+                return tf.train.SessionRunArgs(loss)  # Asks for loss value.
 
-                def after_run(self, run_context, run_values):
-                    if self._step % FLAGS.log_frequency == 0:
-                        current_time = time.time()
-                        duration = current_time - self._start_time
-                        self._start_time = current_time
+            def after_run(self, run_context, run_values):
+                if self._step % FLAGS.log_frequency == 0:
+                    current_time = time.time()
+                    duration = current_time - self._start_time
+                    self._start_time = current_time
 
-                        loss_value = run_values.results
-                        examples_per_sec = FLAGS.log_frequency * FLAGS.batch_size / duration
-                        sec_per_batch = float(duration / FLAGS.log_frequency)
+                    loss_value = run_values.results
+                    examples_per_sec = FLAGS.log_frequency * FLAGS.batch_size / duration
+                    sec_per_batch = float(duration / FLAGS.log_frequency)
 
-                        format_str = ('%s: step %d, loss = %.2f (%.1f examples/sec; %.3f '
-                                      'sec/batch)')
-                        print(format_str % (datetime.now(), self._step, loss_value,
-                                            examples_per_sec, sec_per_batch))
+                    format_str = ('%s: step %d, loss = %.2f (%.1f examples/sec; %.3f '
+                                  'sec/batch)')
+                    print(format_str % (datetime.now(), self._step, loss_value,
+                                        examples_per_sec, sec_per_batch))
 
-            with tf.train.MonitoredTrainingSession(
-                    checkpoint_dir=FLAGS.train_dir,
-                    hooks=[tf.train.StopAtStepHook(last_step=FLAGS.max_steps),
-                           tf.train.NanTensorHook(loss),
-                           _LoggerHook()],
-                    config=tf.ConfigProto(
-                        log_device_placement=FLAGS.log_device_placement)) as mon_sess:
-                while not mon_sess.should_stop():
-                    mon_sess.run(train_op)
+        with tf.train.MonitoredTrainingSession(
+                checkpoint_dir=FLAGS.train_dir,
+                hooks=[tf.train.StopAtStepHook(last_step=FLAGS.max_steps),
+                       tf.train.NanTensorHook(loss),
+                       _LoggerHook()],
+                config=tf.ConfigProto(
+                    log_device_placement=FLAGS.log_device_placement)) as mon_sess:
+            while not mon_sess.should_stop():
+                mon_sess.run(train_op)
 
 
 def main(argv=None):  # pylint: disable=unused-argument

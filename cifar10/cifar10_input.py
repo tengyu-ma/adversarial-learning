@@ -28,7 +28,7 @@ import tensorflow as tf
 # image size of 32 x 32. If one alters this number, then the entire model
 # architecture will change and any model would need to be retrained.
 IMAGE_SIZE = 24
-ORG_IMAGE_SIZE = 24
+ORG_IMAGE_SIZE = 32
 
 # Global constants describing the CIFAR-10 data set.
 NUM_CLASSES = 10
@@ -164,7 +164,7 @@ def distorted_inputs(data_dir, batch_size):
     reshaped_image = tf.cast(read_input.uint8image, tf.float32)
     read_input.label.set_shape([1])
 
-    # reshaped_image = tf.reshape(image_0, [32, 32, 3])
+    reshaped_image = tf.reshape(reshaped_image, [32, 32, 3])
 
     height = IMAGE_SIZE
     width = IMAGE_SIZE
