@@ -20,7 +20,7 @@ EVAL_DIR = '/tmp/cifar10_eval'
 EVAL_DATA = 'test'  # 'train_eval'
 CHECKPOINT_DIR = '/tmp/cifar10_train'
 NUM_EXAMPLES = 10000
-EPS = 5
+EPS = 50
 MAX_STEPS = 70
 
 
@@ -92,37 +92,51 @@ class Cifar:
                     true_count = 0  # Counts the number of correct predictions.
                     total_sample_count = num_iter * FLAGS.batch_size
                     step = 0
-                    file = None
+                    file_org = None
+                    file_new = None
                     while step < num_iter and not coord.should_stop():
-                        # org_images_4d, images_4d, eta_4d, images_new_4d = sess.run(
-                        #     [org_images, images, eta_reshaped, images_new])
-                        predictions, org_images_array, images_array, labels_array = sess.run([top_k_op, images_new, images, labels])
-                        # predictions= sess.run([top_k_op])
+                        # predictions, org_images_array, images_array, labels_array = sess.run([top_k_op, org_images, images, labels])
+                        predictions, org_images_array, images_array_new, images_array, labels_array = sess.run(
+                            [top_k_op, org_images, images_new, images, labels])
                         print("Step: %d" % step)
                         true_count += np.sum(predictions)
-                        if FLAGS.batch_size == 1:
-                        #     plt.imshow(org_images_array)
-                        #     plt.show()
-                            image_matrix = np.array([org_images_array[0,:,:,0], org_images_array[0,:,:,1], org_images_array[0,:,:,2]])
-                            image_list = list(map(int, list(image_matrix.flatten())))
-                            label_list = list(map(int, list(labels_array)))
-                            data_list = np.array(label_list + image_list)
-                            data_list[data_list > 255] = 255
-                            data_list[data_list < 0] = 0
-                            data_list = list(data_list)
-                            data_bytes = bytes(data_list)
-                            assert len(data_bytes) == 1729
-                            if step == 0:
-                                file = data_bytes
-                            else:
-                                file += data_bytes
+                        # if FLAGS.batch_size == 1:
+                        #     image_matrix_org = np.array([org_images_array[:,:,0], org_images_array[:,:,1], org_images_array[:,:,2]])
+                        #     image_list_org = list(map(int, list(image_matrix_org.flatten())))
+                        #     label_list_org = list(map(int, list(labels_array)))
+                        #     data_list_org = np.array(label_list_org + image_list_org)
+                        #     data_list_org[data_list_org > 255] = 255
+                        #     data_list_org[data_list_org < 0] = 0
+                        #     data_list_org = list(data_list_org)
+                        #     data_bytes_org = bytes(data_list_org)
+                        #
+                        #     image_matrix_new = np.array([images_array_new[0, :, :, 0], images_array_new[0, :, :, 1],
+                        #                                  images_array_new[0, :, :, 2]])
+                        #     image_list_new = list(map(int, list(image_matrix_new.flatten())))
+                        #     label_list_new = list(map(int, list(labels_array)))
+                        #     data_list_new = np.array(label_list_new + image_list_new)
+                        #     data_list_new[data_list_new > 255] = 255
+                        #     data_list_new[data_list_new < 0] = 0
+                        #     data_list_new = list(data_list_new)
+                        #     data_bytes_new = bytes(data_list_new)
+                        #
+                        #     assert len(data_bytes_org) == 1729
+                        #     if step == 0:
+                        #         file_org = data_bytes_org
+                        #         file_new = data_bytes_new
+                        #     else:
+                        #         file_org += data_bytes_org
+                        #         file_new += data_bytes_new
 
                         step += 1
 
-                    data_dir = '/tmp/cifar10_data/cifar-10-batches-bin'
-                    file_to_write = os.path.join(data_dir, 'test_batch_new.bin')
-                    with open(file_to_write, 'wb') as f:
-                        f.write(file)
+                    # data_dir = '/tmp/cifar10_data/cifar-10-batches-bin'
+                    # file_to_write_org = os.path.join(data_dir, 'test_batch_org.bin')
+                    # with open(file_to_write_org, 'wb') as f:
+                    #     f.write(file_org)
+                    # file_to_write_new = os.path.join(data_dir, 'test_batch_new.bin')
+                    # with open(file_to_write_new, 'wb') as f:
+                    #     f.write(file_new)
 
                     # scale = 128.0 / max(abs(tmp.max()),abs(tmp.min()))
                     # tmp = tmp * scale + 128.0
