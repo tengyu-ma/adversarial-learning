@@ -25,6 +25,8 @@ from settings import *
 from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
 
+IMAGE_SIZE = 24
+
 def read_cifar10(filename_queue):
     """Reads and parses examples from CIFAR10 data files.
 
@@ -251,4 +253,7 @@ def inputs(eval_data, data_dir, batch_size):
                                                      min_queue_examples, batch_size,
                                                      shuffle=False)
     # it's strange here, use labels to test, and use read_input.label to write the image
-    return images, labels, reshaped_image
+    if NOISE_OUTPUT:
+        return images, read_input.label, reshaped_image
+    else:
+        return images, labels, reshaped_image

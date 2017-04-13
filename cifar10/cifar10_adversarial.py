@@ -13,11 +13,7 @@ import numpy as np
 import tensorflow as tf
 import matplotlib as mp
 import matplotlib.pyplot as plt
-
 import cifar10
-import data_helpers
-
-FLAGS = tf.app.flags.FLAGS
 
 class Cifar:
     def __init__(self):
@@ -35,7 +31,7 @@ class Cifar:
             logits = cifar10.inference(images)
 
             if FLAGS.batch_size == 1:  # we need to save the image with noise
-                assert cifar.ORG_IMAGE_SIZE == 32
+                assert cifar.ORG_IMAGE_SIZE == 24
                 loss = cifar10.loss(logits, labels)
                 nabla_J = tf.gradients(loss, images)  # apply nabla operator to calculate the gradient
                 sign_nabla_J = tf.sign(nabla_J)  # calculate the sign of the gradient of cost function
@@ -99,8 +95,6 @@ class Cifar:
                             image_list_org = list(map(int, list(image_matrix_org.flatten())))
                             label_list_org = list(map(int, list(labels_array)))
                             data_list_org = np.array(label_list_org + image_list_org)
-                            data_list_org[data_list_org > 255] = 255
-                            data_list_org[data_list_org < 0] = 0
                             data_list_org = list(data_list_org)
                             data_bytes_org = bytes(data_list_org)
 
@@ -128,12 +122,11 @@ class Cifar:
                         step += 1
 
                     if FLAGS.batch_size == 1:
-                        data_dir = '/tmp/cifar10_data/cifar-10-batches-bin'
-                        file_to_write_org = os.path.join(data_dir, 'test_batch_org.bin')
+                        file_to_write_org = os.path.join(DATA_DIR, 'test_batch_org.bin')
                         with open(file_to_write_org, 'wb') as f:
                             f.write(file_org)
                     if FLAGS.batch_size == 1 and NOISE_OUTPUT:
-                        file_to_write_new = os.path.join(data_dir, 'test_batch_new.bin')
+                        file_to_write_new = os.path.join(DATA_DIR, 'test_batch_new.bin')
                         with open(file_to_write_new, 'wb') as f:
                             f.write(file_new)
 
