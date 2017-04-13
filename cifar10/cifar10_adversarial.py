@@ -5,6 +5,7 @@ from __future__ import print_function
 from datetime import datetime
 import math
 import time
+import os
 
 import numpy as np
 import tensorflow as tf
@@ -19,8 +20,9 @@ EVAL_DIR = '/tmp/cifar10_eval'
 EVAL_DATA = 'test'  # 'train_eval'
 CHECKPOINT_DIR = '/tmp/cifar10_train'
 NUM_EXAMPLES = 10000
-EPS = 0.25
+EPS = 5
 MAX_STEPS = 70
+
 
 class Cifar:
     def __init__(self):
@@ -35,19 +37,17 @@ class Cifar:
             data_sets = data_helpers.load_data()
 
             images, labels, org_images = cifar10.inputs(eval_data=eval_data)
-            # images = tf.placeholder(tf.float32, shape=[None, 32, 32, 3], name='images')
-            # labels = tf.placeholder(tf.int32, shape=[None], name='image-labels')
+            org_images = tf.cast(org_images, tf.float32)
 
-            # org_images = tf.cast(org_images, tf.float32)
             logits = cifar10.inference(images)
 
             loss = cifar10.loss(logits, labels)
-            # nabla_J = tf.gradients(loss, images)  # apply nabla operator to calculate the gradient
-            # sign_nabla_J = tf.sign(nabla_J)  # calculate the sign of the gradient of cost function
-            # eta = tf.multiply(sign_nabla_J, EPS)  # multiply epsilon the sign of the gradient of cost function
-            # eta_flatten = tf.reshape(eta, images._shape)
-            # images_new = tf.add(images, eta_flatten)
-            #
+            nabla_J = tf.gradients(loss, images)  # apply nabla operator to calculate the gradient
+            sign_nabla_J = tf.sign(nabla_J)  # calculate the sign of the gradient of cost function
+            eta = tf.multiply(sign_nabla_J, EPS)  # multiply epsilon the sign of the gradient of cost function
+            eta_reshaped = tf.reshape(eta, images._shape)
+            images_new = tf.add(org_images, eta_reshaped)
+
             # scope.reuse_variables()
             # logits = cifar10.inference(images_new)
 
@@ -66,11 +66,6 @@ class Cifar:
             summary_writer = tf.summary.FileWriter(EVAL_DIR)
 
             with tf.Session() as sess:
-                sess.run(tf.global_variables_initializer())
-                # print(FLAGS.batch_size)
-
-                zipped_data = zip(data_sets['images_train'], data_sets['labels_train'])
-                batches = data_helpers.gen_batch(list(zipped_data), FLAGS.batch_size, MAX_STEPS)
 
                 ckpt = tf.train.get_checkpoint_state(CHECKPOINT_DIR)
                 if ckpt and ckpt.model_checkpoint_path:
@@ -84,9 +79,6 @@ class Cifar:
                     print('No checkpoint file found')
                     return
 
-                # with tf.variable_scope('top_k_op2') as scope:
-                #     logits2 = cifar10.inference(images_new)
-                #     top_k_op2 = tf.nn.in_top_k(logits2, labels, 1)
                 # Start the queue runners.
                 coord = tf.train.Coordinator()
                 try:
@@ -95,25 +87,42 @@ class Cifar:
                         threads.extend(qr.create_threads(sess, coord=coord, daemon=True,
                                                          start=True))
 
-                    num_iter = int(math.ceil(NUM_EXAMPLES / FLAGS.batch_size))
-                    # num_iter = 1
+                    # num_iter = int(math.ceil(NUM_EXAMPLES / FLAGS.batch_size))
+                    num_iter = 1000
                     true_count = 0  # Counts the number of correct predictions.
                     total_sample_count = num_iter * FLAGS.batch_size
                     step = 0
+                    file = None
                     while step < num_iter and not coord.should_stop():
-                        batch = next(batches)
-                        images_batch, labels_batch = zip(*batch)
-                        feed_dict = {
-                            images: images_batch,
-                            labels: labels_batch
-                        }
-                        # images_4d = sess.run(images)
-                        # eta_4d = sess.run(eta_flatten)
-                        # images_new_4d = sess.run(images_new)
+                        # org_images_4d, images_4d, eta_4d, images_new_4d = sess.run(
+                        #     [org_images, images, eta_reshaped, images_new])
+                        predictions, org_images_array, images_array, labels_array = sess.run([top_k_op, images_new, images, labels])
+                        # predictions= sess.run([top_k_op])
                         print("Step: %d" % step)
-                        predictions = sess.run([top_k_op], feed_dict=feed_dict)
                         true_count += np.sum(predictions)
+                        if FLAGS.batch_size == 1:
+                        #     plt.imshow(org_images_array)
+                        #     plt.show()
+                            image_matrix = np.array([org_images_array[0,:,:,0], org_images_array[0,:,:,1], org_images_array[0,:,:,2]])
+                            image_list = list(map(int, list(image_matrix.flatten())))
+                            label_list = list(map(int, list(labels_array)))
+                            data_list = np.array(label_list + image_list)
+                            data_list[data_list > 255] = 255
+                            data_list[data_list < 0] = 0
+                            data_list = list(data_list)
+                            data_bytes = bytes(data_list)
+                            assert len(data_bytes) == 1729
+                            if step == 0:
+                                file = data_bytes
+                            else:
+                                file += data_bytes
+
                         step += 1
+
+                    data_dir = '/tmp/cifar10_data/cifar-10-batches-bin'
+                    file_to_write = os.path.join(data_dir, 'test_batch_new.bin')
+                    with open(file_to_write, 'wb') as f:
+                        f.write(file)
 
                     # scale = 128.0 / max(abs(tmp.max()),abs(tmp.min()))
                     # tmp = tmp * scale + 128.0

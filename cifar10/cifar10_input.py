@@ -28,6 +28,7 @@ import tensorflow as tf
 # image size of 32 x 32. If one alters this number, then the entire model
 # architecture will change and any model would need to be retrained.
 IMAGE_SIZE = 24
+ORG_IMAGE_SIZE = 24
 
 # Global constants describing the CIFAR-10 data set.
 NUM_CLASSES = 10
@@ -66,8 +67,8 @@ def read_cifar10(filename_queue):
     # See http://www.cs.toronto.edu/~kriz/cifar.html for a description of the
     # input format.
     label_bytes = 1  # 2 for CIFAR-100
-    result.height = 32
-    result.width = 32
+    result.height = ORG_IMAGE_SIZE
+    result.width = ORG_IMAGE_SIZE
     result.depth = 3
     image_bytes = result.height * result.width * result.depth
     # Every record consists of a label followed by the image, with a
@@ -117,7 +118,7 @@ def _generate_image_and_label_batch(image, label, min_queue_examples,
     """
     # Create a queue that shuffles the examples, and then
     # read 'batch_size' images + labels from the example queue.
-    num_preprocess_threads = 16
+    num_preprocess_threads = 1
     if shuffle:
         images, label_batch = tf.train.shuffle_batch(
             [image, label],
@@ -138,7 +139,7 @@ def _generate_image_and_label_batch(image, label, min_queue_examples,
     return images, tf.reshape(label_batch, [batch_size])
 
 
-def distorted_inputs(image_0, label_0, data_dir, batch_size):
+def distorted_inputs(data_dir, batch_size):
     """Construct distorted input for CIFAR training using the Reader ops.
 
     Args:
@@ -162,8 +163,8 @@ def distorted_inputs(image_0, label_0, data_dir, batch_size):
     read_input = read_cifar10(filename_queue)
     reshaped_image = tf.cast(read_input.uint8image, tf.float32)
     read_input.label.set_shape([1])
+
     # reshaped_image = tf.reshape(image_0, [32, 32, 3])
-    # labels = label_0
 
     height = IMAGE_SIZE
     width = IMAGE_SIZE
@@ -172,10 +173,10 @@ def distorted_inputs(image_0, label_0, data_dir, batch_size):
     # distortions applied to the image.
 
     # Randomly crop a [height, width] section of the image.
-    distorted_image = tf.random_crop(reshaped_image, [height, width, 3])
+    cropped_image = tf.random_crop(reshaped_image, [height, width, 3])
 
     # Randomly flip the image horizontally.
-    distorted_image = tf.image.random_flip_left_right(distorted_image)
+    distorted_image = tf.image.random_flip_left_right(cropped_image)
 
     # Because these operations are not commutative, consider randomizing
     # the order their operation.
@@ -199,7 +200,7 @@ def distorted_inputs(image_0, label_0, data_dir, batch_size):
           'This will take a few minutes.' % min_queue_examples)
 
     # Generate a batch of images and labels by building up a queue of examples.
-    return _generate_image_and_label_batch(reshaped_image, labels,
+    return _generate_image_and_label_batch(float_image, read_input.label,
                                            min_queue_examples, batch_size,
                                            shuffle=True)
 
@@ -221,7 +222,7 @@ def inputs(eval_data, data_dir, batch_size):
                      for i in xrange(1, 6)]
         num_examples_per_epoch = NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN
     else:
-        filenames = [os.path.join(data_dir, 'test_batch.bin')]
+        filenames = [os.path.join(data_dir, 'test_batch_24.bin')]
         num_examples_per_epoch = NUM_EXAMPLES_PER_EPOCH_FOR_EVAL
 
     for f in filenames:
@@ -260,4 +261,5 @@ def inputs(eval_data, data_dir, batch_size):
     images, labels = _generate_image_and_label_batch(float_image, read_input.label,
                                                      min_queue_examples, batch_size,
                                                      shuffle=False)
-    return images, labels, read_input.uint8image
+    # it's strange here, use labels to test, and use read_input.label to write the image
+    return images, read_input.label, reshaped_image

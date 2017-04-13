@@ -48,7 +48,7 @@ import cifar10_input
 FLAGS = tf.app.flags.FLAGS
 
 # Basic model parameters.
-tf.app.flags.DEFINE_integer('batch_size', 128,
+tf.app.flags.DEFINE_integer('batch_size', 1,
                             """Number of images to process in a batch.""")
 tf.app.flags.DEFINE_string('data_dir', '/tmp/cifar10_data',
                            """Path to the CIFAR-10 data directory.""")
@@ -138,7 +138,7 @@ def _variable_with_weight_decay(name, shape, stddev, wd):
     return var
 
 
-def distorted_inputs(image_0, label_0):
+def distorted_inputs():
     """Construct distorted input for CIFAR training using the Reader ops.
 
     Returns:
@@ -151,7 +151,7 @@ def distorted_inputs(image_0, label_0):
     if not FLAGS.data_dir:
         raise ValueError('Please supply a data_dir')
     data_dir = os.path.join(FLAGS.data_dir, 'cifar-10-batches-bin')
-    images, labels = cifar10_input.distorted_inputs(image_0, label_0, data_dir=data_dir,
+    images, labels = cifar10_input.distorted_inputs(data_dir=data_dir,
                                                     batch_size=FLAGS.batch_size)
     if FLAGS.use_fp16:
         images = tf.cast(images, tf.float16)
