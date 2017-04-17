@@ -213,7 +213,7 @@ def inputs(eval_data, data_dir, batch_size):
                      for i in xrange(1, 6)]
         num_examples_per_epoch = NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN
     else:
-        filenames = [os.path.join(data_dir, 'test_batch.bin')]
+        filenames = [os.path.join(data_dir, EVAL_DATA)]
         num_examples_per_epoch = NUM_EXAMPLES_PER_EPOCH_FOR_EVAL
 
     for f in filenames:
@@ -253,7 +253,7 @@ def inputs(eval_data, data_dir, batch_size):
                                                      min_queue_examples, batch_size,
                                                      shuffle=False)
     # it's strange here, use labels to test, and use read_input.label to write the image
-    if NOISE_OUTPUT:
-        return images, read_input.label, reshaped_image
-    else:
+    if MODE == 'normal':
         return images, labels, reshaped_image
+    else:
+        return images, read_input.label, resized_image
