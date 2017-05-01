@@ -37,6 +37,25 @@ def threshold_method(im, thres=0.5):
     return im
 
 
+def test_method(im, thres=0.5):
+    # min_im = im.min()
+    # max_im = im.max()
+    # im = (im - min_im) / (max_im - min_im)
+    #
+    # im[im <= thres] = 0
+    # im[im > thres] = 1
+
+    return cv2.medianBlur(im, 3)
+    #
+    # kernel = ones((2, 2), uint8)
+
+    # for i in range(len(im)):
+    #     img = im[i].reshape(28, 28)
+    #     tmp = cv2.dilate(img, kernel, iterations=1)  # best with (2,2) kernel
+    #     im[i] = tmp.flatten()
+
+    # return im
+
 def rof(im, U_init, tolerance=0.1, tau=0.125, tv_weight=100):
     # much worse than the situation without denoising
     # without denoising: 0.1721		0.909802
