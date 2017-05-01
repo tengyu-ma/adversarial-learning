@@ -34,7 +34,7 @@ class NormalVsAdversarial:
         print('===== %s %d iteration =====' % (learning_strategy_name, self.iter))
         logging.info('===== %s %d iteration =====' % (learning_strategy_name, self.iter))
         learning_model = getattr(learning_strategy, learning_strategy_name)
-        # initialize local variables
+        # initialize    local variables
         data, sess, x, y_, keep_prob, iter = self.data, self.sess, self.x, self.y_, self.keep_prob, self.iter
         self.y, self.cost_function = learning_model(data, self.sess, x, y_, keep_prob, iter, 0)
         # save the model

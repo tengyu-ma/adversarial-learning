@@ -1,6 +1,7 @@
 from numpy import *
 from scipy.ndimage import filters
 import cv2
+import numpy as np
 
 
 def threshold_method(im, thres=0.5):
@@ -75,3 +76,63 @@ def rof(im, U_init, tolerance=0.1, tau=0.125, tv_weight=100):
 def gaussian(im):
     # a bit better, confidence much lower
     return filters.gaussian_filter(im, 1)
+
+
+def contrast_enhancing(im, epsilon):
+    """ does not work, even worse """
+    normlizer = 255 / (np.amax(im) - np.amin(im))
+    im = (im + epsilon) * normlizer
+    img = im.astype(np.uint8)
+    img_c = cv2.imread('panda1.jpg')
+
+    img_yuv = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
+
+    # equalize the histogram of the Y channel
+    img_yuv[:, :, 0] = cv2.equalizeHist(img_yuv[:, :, 0])
+
+    # convert the YUV image back to RGB format
+    img_output = cv2.cvtColor(img_yuv, cv2.COLOR_YUV2BGR)
+
+    # cv2.imshow('Color input image', img)
+    # cv2.waitKey(0)
+    #
+    # cv2.imshow('Histogram equalized', img_output)
+    # cv2.waitKey(0)
+
+    return img_output
+
+
+def fast_nl_means_denoising_colored(im, epsilon):
+    normlizer = 255 / (np.amax(im) - np.amin(im))
+    im = (im + epsilon) * normlizer
+    img = im.astype(np.uint8)
+
+    # img_c = cv2.imread('panda1.jpg')
+    img_output = cv2.fastNlMeansDenoisingColored(img)
+
+    return img_output
+
+
+def bilateral_filter(im, epsilon):
+    normlizer = 255 / (np.amax(im) - np.amin(im))
+    im = (im + epsilon) * normlizer
+    img = im.astype(np.uint8)
+
+    # img_c = cv2.imread('panda1.jpg')
+    img_output = cv2.bilateralFilter(img, 9, 20, 20)
+
+    return img_output
+
+
+def bm3d(im, epsilon):
+    # some import error here
+    import mvsfunc as mvf
+    normlizer = 255 / (np.amax(im) - np.amin(im))
+    im = (im + epsilon) * normlizer
+    img = im.astype(np.uint8)
+
+    img_output = mvf.BM3D(img, sigma=[3, 3, 3], radius1=0)  # radius1=0 for BM3D, radius1>0 for V-BM3D
+    return img_output
+
+# img = cv2.imread('panda1.jpg')
+# contrast_enhancing(img)
