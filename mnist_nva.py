@@ -45,7 +45,7 @@ class MnistNvA:
     """
 
     def __init__(self, adv_method='fgsm', denoise_method='threshold_method'):
-        self.data = input_data.read_data_sets('MNIST_data', one_hot=True)
+        self.data = input_data.read_data_sets('data/mnist/nom', one_hot=True)
         self.sess = tf.Session()
         self.x = tf.placeholder(tf.float32, shape=[None, 784])
         self.y_ = tf.placeholder(tf.float32, shape=[None, 10])
