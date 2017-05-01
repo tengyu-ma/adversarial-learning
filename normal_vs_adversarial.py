@@ -70,33 +70,36 @@ class NormalVsAdversarial:
         print('%s\t\t%s' % (accuracy, avg_confidence))
         logging.info('%s\t%s\t\t%s\t%s' % ('adversarial', accuracy, avg_confidence, epsilon))
 
-    def adversarial_test_denoised(self, epsilon=0.1, thres=0.5):
+    def adversarial_test_denoised(self, epsilon=0.1, thres=0.5, denoised_name=None):
         data, sess, x, y_, keep_prob = self.data, self.sess, self.x, self.y_, self.keep_prob
         x_test_normal = data.test.images[0:util.TEST_SIZE]
         y_test_normal = data.test.labels[0:util.TEST_SIZE]
         x_test_adversarial, y_test_adversarial, noise = self.adversarialize(x_test_normal, y_test_normal, epsilon)
         accuracy, avg_confidence = self.evaluate(x_test_adversarial, y_test_normal)
-        print('* Adversarial Test\nAccuracy\tConfidence')
+        print('* Adversarial Test, eps = %f\nAccuracy\tConfidence' % epsilon)
         print('%s\t\t%s' % (accuracy, avg_confidence))
         logging.info('%s\t%s\t\t%s\t%s' % ('adversarial', accuracy, avg_confidence, epsilon))
 
-        # the code below will be different from adversarial_test
-        if self.denoised_method == 'threshold_method':
+        if denoised_name is None:
+            denoised_name = self.denoised_method
+
+        if denoised_name == 'threshold_method':
             x_test_denoised = ds.threshold_method(x_test_adversarial, thres)
+        elif denoised_name == 'test_method':
+            x_test_denoised = ds.test_method(x_test_adversarial, thres)
         else:
             x_test_denoised = ds.threshold_method(x_test_adversarial, thres)
         accuracy, avg_confidence = self.evaluate(x_test_denoised, y_test_normal)
 
-        print('* Adversarial Test with Denoising eps = %f, thres = %f\nAccuracy\tConfidence' % (epsilon, thres))
+        print('* Adversarial Test with Denoising, eps = %f, thres = %f\nAccuracy\tConfidence' % (epsilon, thres))
         print('%s\t\t%s' % (accuracy, avg_confidence))
         logging.info('%s\t%s\t\t%s\t%s' % ('denoised', accuracy, avg_confidence, epsilon))
 
     def flipping_test(self):
         # normal case
-        test_size = 20000
         data, sess, x, y_, keep_prob = self.data, self.sess, self.x, self.y_, self.keep_prob
-        x_test_normal = data.test.images[0:test_size]
-        y_test_normal = data.test.labels[0:test_size]
+        x_test_normal = data.test.images[0:util.TEST_SIZE]
+        y_test_normal = data.test.labels[0:util.TEST_SIZE]
         x_test_flipped = util.flip_black_white(x_test_normal)
         y_test_flipped = y_test_normal
         accuracy, avg_confidence = self.evaluate(x_test_flipped, y_test_flipped)
@@ -186,7 +189,7 @@ if __name__ == '__main__':
     # decide whether to start a new training or load the parameters from the result before
     new_training = False
     output_log = False
-    output_img = False
+    output_img = True
     epsilon = 0.25
 
     # log file to save the network type, accuracy and average confidence
