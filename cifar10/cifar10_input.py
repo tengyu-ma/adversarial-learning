@@ -24,6 +24,7 @@ from settings import *
 
 from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
+import random
 
 IMAGE_SIZE = 24
 
@@ -176,8 +177,12 @@ def distorted_inputs(data_dir, batch_size):
     distorted_image = tf.image.random_contrast(distorted_image,
                                                lower=0.2, upper=1.8)
 
+
     # Subtract off the mean and divide by the variance of the pixels.
     float_image = tf.image.per_image_standardization(distorted_image)
+
+    sign_random = tf.sign(tf.random_normal([1], mean=0, stddev=1))
+    float_image = tf.multiply(float_image, sign_random)
     # float_image = distorted_image
 
     # Set the shapes of tensors.
@@ -253,7 +258,9 @@ def inputs(eval_data, data_dir, batch_size):
                                                      min_queue_examples, batch_size,
                                                      shuffle=False)
     # it's strange here, use labels to test, and use read_input.label to write the image
-    if MODE == 'normal':
+    if MODE == 'normal' or MODE == 'train':
+        return images, labels, reshaped_image
+    elif MODE == 'show' or MODE == 'vote_show':
         return images, labels, reshaped_image
     else:
         return images, read_input.label, resized_image
