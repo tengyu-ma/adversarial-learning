@@ -1,5 +1,4 @@
-import numpy as np
-import tensorflow as tf
+import os
 
 TEST_SIZE = 1000 * 1
 
@@ -9,9 +8,5 @@ SUPPORTED_DNNS = ['ReLU_Softmax_AdamOptimizer',
                   'Inception',
                   'CIFAR-10']
 
-
-def flip_black_white(x):
-    # flip white and black color
-    flip_matrix = np.ones(x.shape)
-    x_flipped = flip_matrix - x
-    return x_flipped
+ROOT_DIR = os.path.dirname(os.path.realpath(__file__))[:-len("\\utils")]
+ImageNet_DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__))[:-len("\\utils")], "data", "imagenet")

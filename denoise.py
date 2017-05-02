@@ -133,20 +133,44 @@ def fast_nl_means_denoising_colored(im, epsilon):
     return img_output
 
 
-def bilateral_filter(im, epsilon):
-    normlizer = 255 / (np.amax(im) - np.amin(im))
-    im = (im + epsilon) * normlizer
-    img = im.astype(np.uint8)
+def bilateral_filter(im, d=9, sigma_color=20, sigma_space=20):
+    """Bilateral filter
+    
+    Parameters
+    ----------
+    im : ndarray
+        the input image data
+    d : int, 9
+        Diameter of each pixel neighborhood that is used during filtering.
+        If it is non-positive, it is computed from sigmaSpace .
+    sigma_color : int, 20
+        Filter sigma in the color space. 
+        A larger value of the parameter means that farther colors within the pixel neighborhood (see sigmaSpace )
+        will be mixed together, resulting in larger areas of semi-equal color.
+    sigma_space : int, 20
+        Filter sigma in the coordinate space. A larger value of the parameter means that farther pixels will influence
+        each other as long as their colors are close enough (see sigmaColor ). When d>0 , it specifies the neighborhood
+        size regardless of sigmaSpace. Otherwise, d is proportional to sigmaSpace .
+        
+    Returns
+    -------
+    image_output : ndarray
+        the filtered output data
 
+    """
+    # normlizer = 255 / (np.amax(im) - np.amin(im))
+    # im = (im + epsilon) * normlizer
+    # img = im.astype(np.uint8)
     # img_c = cv2.imread('panda1.jpg')
-    img_output = cv2.bilateralFilter(img, 9, 20, 20)
-
+    im = np.squeeze(im)
+    img_output = cv2.bilateralFilter(im, d, sigma_color, sigma_space)
+    img_output = np.expand_dims(img_output, 0)
     return img_output
 
 
 def bm3d(im, epsilon):
     # some import error here
-    import mvsfunc as mvf
+    import utils.mvsfunc as mvf
     normlizer = 255 / (np.amax(im) - np.amin(im))
     im = (im + epsilon) * normlizer
     img = im.astype(np.uint8)

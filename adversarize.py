@@ -59,16 +59,26 @@ def fgsm_mnist(J, x, y_, x_test, y_test, sess, keep_prob, epsilon=0.1):
     return x_test_adversarial, noise
 
 
-def fgsm_imagenet(J, im, epsilon=0.1):
+def fgsm_imagenet(sess, J, x, y_, rn_x, image_data, image_label, epsilon=2):
     """
     A fast gradient sign method to generate adversarial example
 
     Parameters
     ----------
-    J : 
+    sess : Session
+        default tensorflow session
+    J : tensor
         cost function
-    im : ndarray
-        input image
+    x : placeholder
+        placeholder for the input image
+    y_ : placeholder
+        placeholder for the correct one-hot label
+    rn_x : tensor
+        tensorflow tensor for the resized and normalized input image
+    image_data : ndarray
+        resized and normalized input data
+    image_label : ndarray
+        one-hot correct label
     epsilon :
         noise rate
 
@@ -79,25 +89,12 @@ def fgsm_imagenet(J, im, epsilon=0.1):
     noise : 
         the noise added to the normal data; noise = sign(▽_xJ(theta,x,y))
     """
-
-    sess = tf.Session()
-    x = tf.placeholder(tf.float32, shape=list(im.shape))  # true training data
-
-    nabla_J = tf.gradients(J, x)  # apply nabla operator to calculate the gradient
+    nabla_J = tf.gradients(J, rn_x)  # apply nabla operator to calculate the gradient
     sign_nabla_J = tf.sign(nabla_J)  # calculate the sign of the gradient of cost function
     eta = tf.multiply(sign_nabla_J, epsilon)  # multiply epsilon the sign of the gradient of cost function
-    # eta_flatten = tf.reshape(eta, [-1, 784])
-    # x_adv = np.array([])
-    # noise = np.array([])
 
-    noise = sess.run(eta, feed_dict={x: im})
-    x_adv = sess.run(tf.add(im, noise))  # add noise to test data
-    # if not x_test_adversarial.size:
-    # x_test_adversarial = temp
-    # noise = eta_result
-    # else:
-    #     x_test_adversarial = np.vstack((x_test_adversarial, temp))
-    #     noise = np.vstack((noise, eta_result))
+    noise = sess.run(eta, {x: image_data, y_: image_label})
+    x_adv = sess.run(tf.add(rn_x, tf.squeeze(noise)))  # add noise to test data
 
     return x_adv, noise
 

@@ -49,13 +49,12 @@ from six.moves import urllib
 import tensorflow as tf
 import random
 
-import adversarial_generator
-import denoising_strategy as des
+from utils import util
+import adversarize
+import denoise
 
 # pylint: disable=line-too-long
 DATA_URL = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz'
-
-
 # pylint: enable=line-too-long
 
 n1_t = 0
@@ -147,181 +146,156 @@ def create_graph():
         _ = tf.import_graph_def(graph_def, name='')
 
 
-def run_inference_on_image(image, image_id):
+def run_inference_on_image(sess, image, image_id):
     """Runs inference on an image.
-
-    Args:
-    image: Image file name.
-    label: Correct label for the image
     
-    Returns:
-    Nothing
+    Parameters
+    ----------
+    sess : Session
+        tensorflow session
+    image : str
+        Image file name.
+    image_id : int
+        Correct label for the image
+    
+    Output tensors
+    ______________
+    'softmax:0': tensor
+        A tensor containing the normalized prediction across 1000 labels.
+    'pool_3:0': tensor
+        A tensor containing the next-to-last layer containing 2048 float description of the image.
+        
+    Input tensors
+    _____________
+    'DecodeJpeg:0' : tensor
+        the very first input tensor containing the original UINT8 image matrix
+    'DecodeJpeg/contents:0': tensor
+        A tensor containing a string providing JPEG encoding of the image.  
+    'Cast:0' : tensor
+        convert UINT8 to Float32 type for each element in the matrix
+    'ExpandDims:0' : tensor
+        add batch dimensions
+    'ResizeBilinear:0' : tensor
+        resize the image into standard 300*300 size by bilinear interpolation
+    'Sub:0' : tensor
+        the first step to normalize
+    'Mul:0' : tensor
+        the last step to normalize
+      
     """
     if not tf.gfile.Exists(image):
         tf.logging.fatal('File does not exist %s', image)
     image_data = tf.gfile.FastGFile(image, 'rb').read()
 
-    # im = cv2.imread(image)
-    # im_adv, im_noise = adversarial_generator(J, im)  # J is the cost function; im is the input image
-    # # tf.gfile.FastGFile('test.jpg', 'wb+').write(image_data)
-    # print(image_data)
     # Creates graph from saved GraphDef.
-    create_graph()
+    # create_graph()
+    # with tf.Session() as sess:
+    # get the output after softmax.
+    softmax_tensor = sess.graph.get_tensor_by_name('softmax:0')
 
-    with tf.Session() as sess:
-        # Some useful tensors:
-        # 'softmax:0': A tensor containing the normalized prediction across
-        #   1000 labels.
-        # 'pool_3:0': A tensor containing the next-to-last layer containing 2048
-        #   float description of the image.
-        # 'DecodeJpeg/contents:0': A tensor containing a string providing JPEG
-        #   encoding of the image.
-        # Runs the softmax tensor by feeding the image_data as input to the graph.
-        softmax_tensor = sess.graph.get_tensor_by_name('softmax:0')
-        softmax_logits_tensor = sess.graph.get_tensor_by_name('softmax/logits:0')
+    # get the output before the softmax
+    softmax_logits_tensor = sess.graph.get_tensor_by_name('softmax/logits:0')
 
-        # decode_jpeg_tensor = sess.graph.get_tensor_by_name('DecodeJpeg:0')
-        # decode_jpeg_contents_tensor = sess.graph.get_tensor_by_name('DecodeJpeg/contents:0')
-        decode_jpeg_3_tensor = sess.graph.get_tensor_by_name('Cast:0')
-        # decode_jpeg_4_tensor = sess.graph.get_tensor_by_name('ExpandDims:0')
-        # decode_jpeg_5_tensor = sess.graph.get_tensor_by_name('ResizeBilinear:0')
-        # decode_jpeg_6_tensor = sess.graph.get_tensor_by_name('Sub:0')
-        # decode_jpeg_7_tensor = sess.graph.get_tensor_by_name('Mul:0')
-        # decode_jpeg_8_tensor = sess.graph.get_tensor_by_name('conv:0')
+    # get the real input to the DNNs which are resized to 300*300 and normalized
+    rn_image_tensor = sess.graph.get_tensor_by_name('Mul:0')
 
-        # f = open('graph_name.txt', 'w+')
-        # for key, value in sess.graph._names_in_use.items():
-        #     f.write(key + '\t' + str(value) + '\n')
-        # f.close()
+    predictions = sess.run(softmax_tensor, {'DecodeJpeg/contents:0': image_data})
 
-        predictions = sess.run(softmax_tensor, {'DecodeJpeg/contents:0': image_data})
-        # predictions = sess.run(softmax_tensor, {'DecodeJpeg/contents:0': image_data})
+    predictions_logits = sess.run(softmax_logits_tensor, {'DecodeJpeg/contents:0': image_data})
 
-        predictions_logits = sess.run(softmax_logits_tensor, {'DecodeJpeg/contents:0': image_data})
+    rn_image = sess.run(rn_image_tensor, {'DecodeJpeg/contents:0': image_data})
 
-        # decode_jpeg = sess.run(decode_jpeg_tensor, {'DecodeJpeg/contents:0': image_data})
-        # decode_jpeg_2 = sess.run(decode_jpeg_contents_tensor, {'DecodeJpeg/contents:0': image_data})
-        decode_jpeg_3 = sess.run(decode_jpeg_3_tensor, {'DecodeJpeg/contents:0': image_data})
-        # decode_jpeg_4 = sess.run(decode_jpeg_4_tensor, {'DecodeJpeg/contents:0': image_data})
-        # decode_jpeg_5 = sess.run(decode_jpeg_5_tensor, {'DecodeJpeg/contents:0': image_data})
-        # decode_jpeg_6 = sess.run(decode_jpeg_6_tensor, {'DecodeJpeg/contents:0': image_data})
-        # decode_jpeg_7 = sess.run(decode_jpeg_7_tensor, {'DecodeJpeg/contents:0': image_data})
-        # decode_jpeg_8 = sess.run(decode_jpeg_8_tensor, {'DecodeJpeg/contents:0': image_data})
+    save_image(rn_image, 'panda1')
 
-        # save_image(decode_jpeg, 'panda1')
-        # # save_image(decode_jpeg_2, 'panda2')
-        save_image(decode_jpeg_3, 'grace_hopper')
-        # save_image(decode_jpeg_4, 'panda4')
-        # save_image(decode_jpeg_5, 'panda5')
-        # save_image(decode_jpeg_6, 'panda6')
-        # save_image(decode_jpeg_7, 'panda7')
-        # # save_image(decode_jpeg_8, 'panda8')
+    predictions = np.squeeze(predictions)
+    # predictions_logits = np.squeeze(predictions_logits)
 
-        predictions = np.squeeze(predictions)
-        # predictions_logits = np.squeeze(predictions_logits)
+    label = one_hot_label(image_id)
 
-        # for i in range(160, 180, 1):
-        # i = 169
-        label = one_hot_label(image_id)  # 169 cropped_panda label ToDo: need to find a way the create label
-        # label = one_hot_label(866)  # grace_hopper label ToDo: need to find a way the create label
+    J = cross_entropy_loss(tf.squeeze(softmax_logits_tensor), tf.convert_to_tensor(label),
+                           label_smoothing=0.1, weight=0.4)
 
-        # nabla_1 = tf.gradients(softmax_logits_tensor, decode_jpeg_tensor)
-        # nabla_2 = tf.gradients(softmax_logits_tensor, decode_jpeg_contents_tensor)
-        # nabla_3 = tf.gradients(softmax_logits_tensor, decode_jpeg_3_tensor)
-        # nabla_4 = tf.gradients(softmax_logits_tensor, decode_jpeg_4_tensor)
-        # nabla_5 = tf.gradients(softmax_logits_tensor, decode_jpeg_5_tensor)
-        # nabla_6 = tf.gradients(softmax_logits_tensor, decode_jpeg_6_tensor)
-        # nabla_7 = tf.gradients(softmax_logits_tensor, decode_jpeg_7_tensor)
-        # nabla_8 = tf.gradients(softmax_logits_tensor, decode_jpeg_8_tensor)
+    epsilon = 2.0
+    nabla_J = tf.gradients(J, rn_image_tensor)  # apply nabla operator to calculate the gradient
+    sign_nabla_J = tf.sign(nabla_J)  # calculate the sign of the gradient of cost function
+    eta = tf.multiply(sign_nabla_J, epsilon)  # multiply epsilon the sign of the gradient of cost function
 
-        J = cross_entropy_loss(tf.squeeze(softmax_logits_tensor), tf.convert_to_tensor(label),
-                               label_smoothing=0.1, weight=0.4)
+    noise = sess.run(eta, {'DecodeJpeg/contents:0': image_data})
+    x_adv = sess.run(tf.add(rn_image_tensor, tf.squeeze(noise)))  # add noise to test data
 
-        # J_r = sess.run(J, {'DecodeJpeg/contents:0': image_data})
+    predictions2 = sess.run(softmax_tensor, {'Cast:0': x_adv})
+    predictions2 = np.squeeze(predictions2)
 
-        # f = open('J_name.txt', 'w+')
-        # for key, value in J.graph._names_in_use.items():
-        #     f.write(key + '\t' + str(value) + '\n')
-        # f.close()
+    x_adv_denoise = denoise.bilateral_filter(x_adv, epsilon)
+    predictions3 = sess.run(softmax_tensor, {'Cast:0': x_adv_denoise})
+    predictions3 = np.squeeze(predictions3)
 
-        epsilon = 2.0
-        nabla_J = tf.gradients(J, decode_jpeg_3_tensor)  # apply nabla operator to calculate the gradient
-        sign_nabla_J = tf.sign(nabla_J)  # calculate the sign of the gradient of cost function
-        eta = tf.multiply(sign_nabla_J, epsilon)  # multiply epsilon the sign of the gradient of cost function
+    save_image(noise, 'grace_hopper_noise')
+    save_image(x_adv, 'grace_hopper_adv')
+    save_image(x_adv_denoise, 'grace_hopper_adv_denoise')
 
-        noise = sess.run(eta, {'DecodeJpeg/contents:0': image_data})
-        x_adv = sess.run(tf.add(decode_jpeg_3, tf.squeeze(noise)))  # add noise to test data
+    global n1_t
+    global n1_c
+    global n2_t
+    global n2_c
+    global n3_t
+    global n3_c
+    global n4_t
+    global n4_c
+    global n5_t
+    global n5_c
 
-        predictions2 = sess.run(softmax_tensor, {'Cast:0': x_adv})
-        predictions2 = np.squeeze(predictions2)
+    if image_eval(predictions, image_id):
+        n1_c += 1
+    n1_t += 1
 
-        x_adv_denoise = des.bilateral_filter(x_adv, epsilon)
-        predictions3 = sess.run(softmax_tensor, {'Cast:0': x_adv_denoise})
-        predictions3 = np.squeeze(predictions3)
+    if image_eval(predictions2, image_id):
+        n2_c += 1
+    n2_t += 1
 
-        save_image(noise, 'grace_hopper_noise')
-        save_image(x_adv, 'grace_hopper_adv')
-        save_image(x_adv_denoise, 'grace_hopper_adv_denoise')
+    if image_eval(predictions3, image_id):
+        n3_c += 1
+    n3_t += 1
 
-        global n1_t
-        global n1_c
-        global n2_t
-        global n2_c
-        global n3_t
-        global n3_c
-        global n4_t
-        global n4_c
-        global n5_t
-        global n5_c
+    # ========== wrong label test ============ #
+    label = one_hot_label(random.sample(range(1000), 1)[0])
+    J = cross_entropy_loss(tf.squeeze(softmax_logits_tensor), tf.convert_to_tensor(label),
+                           label_smoothing=0.1, weight=0.4)
 
-        if image_eval(predictions, image_id):
-            n1_c += 1
-        n1_t += 1
+    # J_r = sess.run(J, {'DecodeJpeg/contents:0': image_data})
 
-        if image_eval(predictions2, image_id):
-            n2_c += 1
-        n2_t += 1
+    # f = open('J_name.txt', 'w+')
+    # for key, value in J.graph._names_in_use.items():
+    #     f.write(key + '\t' + str(value) + '\n')
+    # f.close()
 
-        if image_eval(predictions3, image_id):
-            n3_c += 1
-        n3_t += 1
+    epsilon = 2
+    nabla_J = tf.gradients(J, rn_image_tensor)  # apply nabla operator to calculate the gradient
+    sign_nabla_J = tf.sign(nabla_J)  # calculate the sign of the gradient of cost function
+    eta = tf.multiply(sign_nabla_J, epsilon)  # multiply epsilon the sign of the gradient of cost function
 
-        # ========== wrong label test ============ #
-        label = one_hot_label(random.sample(range(1000), 1)[0])
-        J = cross_entropy_loss(tf.squeeze(softmax_logits_tensor), tf.convert_to_tensor(label),
-                               label_smoothing=0.1, weight=0.4)
+    noise = sess.run(eta, {'DecodeJpeg/contents:0': image_data})
+    x_adv = sess.run(tf.add(rn_image_tensor, tf.squeeze(noise)))  # add noise to test data
 
-        # J_r = sess.run(J, {'DecodeJpeg/contents:0': image_data})
+    predictions4 = sess.run(softmax_tensor, {'Cast:0': x_adv})
+    predictions4 = np.squeeze(predictions4)
 
-        # f = open('J_name.txt', 'w+')
-        # for key, value in J.graph._names_in_use.items():
-        #     f.write(key + '\t' + str(value) + '\n')
-        # f.close()
+    x_adv_denoise = denoise.bilateral_filter(x_adv, epsilon)
+    predictions5 = sess.run(softmax_tensor, {'Cast:0': x_adv_denoise})
+    predictions5 = np.squeeze(predictions5)
 
-        epsilon = 2
-        nabla_J = tf.gradients(J, decode_jpeg_3_tensor)  # apply nabla operator to calculate the gradient
-        sign_nabla_J = tf.sign(nabla_J)  # calculate the sign of the gradient of cost function
-        eta = tf.multiply(sign_nabla_J, epsilon)  # multiply epsilon the sign of the gradient of cost function
+    if image_eval(predictions4, image_id):
+        n4_c += 1
+    n4_t += 1
 
-        noise = sess.run(eta, {'DecodeJpeg/contents:0': image_data})
-        x_adv = sess.run(tf.add(decode_jpeg_3, tf.squeeze(noise)))  # add noise to test data
+    if image_eval(predictions5, image_id):
+        n5_c += 1
+    n5_t += 1
 
-        predictions4 = sess.run(softmax_tensor, {'Cast:0': x_adv})
-        predictions4 = np.squeeze(predictions4)
+    print(n1_c/n1_t, '\t', n2_c/n2_t, '\t', n3_c/n3_t, '\t', n4_c/n4_t, '\t', n5_c/n5_t, '\n')
 
-        x_adv_denoise = des.bilateral_filter(x_adv, epsilon)
-        predictions5 = sess.run(softmax_tensor, {'Cast:0': x_adv_denoise})
-        predictions5 = np.squeeze(predictions5)
 
-        if image_eval(predictions4, image_id):
-            n4_c += 1
-        n4_t += 1
-
-        if image_eval(predictions5, image_id):
-            n5_c += 1
-        n5_t += 1
-
-        print(n1_c/n1_t, '\t', n2_c/n2_t, '\t', n3_c/n3_t, '\t', n4_c/n4_t, '\t', n5_c/n5_t, '\n')
+# def get_nom_image
 
 
 def image_eval(prediciton, image_id):
@@ -389,7 +363,8 @@ def cross_entropy_loss(logits, one_hot_labels, label_smoothing=0.0,
 def save_image(image_matrix, label):
     image_matrix = np.squeeze(image_matrix)
     # toimage(image_matrix, cmin=0.0, cmax=1.0).save('%s.jpg' % label)
-    toimage(image_matrix).save('%s.jpg' % label)
+    save_path = os.path.join(util.ROOT_DIR, "data", "imagenet", "%s.jpg" % label)
+    toimage(image_matrix).save(save_path)
 
 
 def maybe_download_and_extract():
@@ -413,31 +388,30 @@ def maybe_download_and_extract():
 
 
 class InceptionModel:
-    def __init__(self, image_file='', model_dir='ImageNet_data', num_top_predictions=5):
-        self.image_file = image_file
-        self.model_dir = model_dir
+    def __init__(self, num_top_predictions=5):
+        self.model_dir = os.path.join(util.ROOT_DIR, "data/imagenet/nom")
         self.num_top_predictions = num_top_predictions
-
 
 FLAGS = InceptionModel()
 
 
 def main(_):
     # maybe_download_and_extract()
-
-    image = (os.path.join(FLAGS.model_dir, FLAGS.image_file) if FLAGS.image_file else
-             # os.path.join(FLAGS.model_dir, 'grace_hopper.jpg'))
-             os.path.join(FLAGS.model_dir, 'cropped_panda.jpg'))
-
-    # image_path = "E:/tmp/mydata/raw-data/validation"
-    # for root, dirs, files in os.walk(image_path):
-    #     for file in files:
-    #         image = os.path.join(root, file)
-    #         uid = root.split('\\')[-1]
-    #         node_lookup = NodeLookup()
-    #         label = node_lookup.uid_to_id[uid]
-    #         run_inference_on_image(image, label)
-    run_inference_on_image(image, 169)
+    single = True  # run inference on a single image or a batch of images
+    sess = tf.Session()
+    if single:
+        label = 169  # 169 for panda; 866 for hobber
+        image = (os.path.join(FLAGS.model_dir, FLAGS.image_file))
+        run_inference_on_image(sess, image, label)
+    else:
+        image_path = "E:/tmp/mydata/raw-data/validation"
+        for root, dirs, files in os.walk(image_path):
+            for file in files:
+                image = os.path.join(root, file)
+                uid = root.split('\\')[-1]
+                node_lookup = NodeLookup()
+                label = node_lookup.uid_to_id[uid]
+                run_inference_on_image(sess, image, label)
 
 
 def make_prediction():
@@ -449,4 +423,5 @@ def make_prediction():
     imagenet_2012_challenge_label_map_proto.pbtxt:
       Text representation of a protocol buffer mapping a label to synset ID.
     """
-    tf.app.run(main=main, argv=[sys.argv[0]])
+    # argv = [sys.argv[0]]
+    tf.app.run(main=main)
