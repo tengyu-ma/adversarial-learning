@@ -67,12 +67,12 @@ class MnistNvA:
             
         """
         self.y, self.J = mnist_DNNs(self.data,
-                                                self.sess,
-                                                self.x,
-                                                self.y_,
-                                                self.keep_prob,
-                                                train_iter,
-                                                restore)
+                                    self.sess,
+                                    self.x,
+                                    self.y_,
+                                    self.keep_prob,
+                                    train_iter,
+                                    restore)
 
         # save the new trained model
         if not restore:
