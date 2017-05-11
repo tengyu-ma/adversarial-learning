@@ -1,2 +1,2 @@
-model_checkpoint_path: "ReLU_Softmax_AdTraining.ckpt"
-all_model_checkpoint_paths: "ReLU_Softmax_AdTraining.ckpt"
+model_checkpoint_path: "mnist_DNNs.ckpt"
+all_model_checkpoint_paths: "mnist_DNNs.ckpt"

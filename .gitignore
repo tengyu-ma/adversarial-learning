@@ -4,9 +4,9 @@
 # Byte-compiled
 __pycache__/
 
-# Image folder
-images/
+# checkpoint
+/checkpoint
 
 # Data folder
 ImageNet_data/
-MNIST_data/
+# data/s
