@@ -18,7 +18,8 @@ tf.app.flags.DEFINE_string('eval_dir', '/tmp/cifar10_eval',
                            """Directory for evaluation""")
 tf.app.flags.DEFINE_integer('eval_interval_secs', 60 * 10,
                             """How often to run the eval.""")
-tf.app.flags.DEFINE_integer('image_size', 32, """The size of cifar images used.""")
+tf.app.flags.DEFINE_boolean('get_correct_label', False, """A strange but necessary method to get label""")
+tf.app.flags.DEFINE_integer('image_size', 24, """The size of cifar images used.""")
 tf.app.flags.DEFINE_boolean('log_device_placement', False,
                             """Whether to log device placement.""")
 tf.app.flags.DEFINE_integer('log_frequency', 10,
@@ -35,21 +36,21 @@ tf.app.flags.DEFINE_integer('batch_size', 128, """Number of images to process in
 
 # MODE = '32_to_24'
 # MODE = '24_to_noise'
-MODE = 'normal'
+# MODE = 'normal'
 # MODE = 'show'
 # MODE = 'vote_show'
 # MODE = 'train'
 EPS = int(0.06 * 255)
 NUM_EXAMPLES = 1000
-if MODE == 'normal':
-    # EVAL_DATA = 'test_batch_15_f2_e2_after_cae.bin'
-    EVAL_DATA = 'test_batch_noise_custom_25.bin'
-    # ORG_IMAGE_SIZE = 24
-elif MODE == 'train':
-    # ORG_IMAGE_SIZE = 32
-    EVAL_DATA = 'test_batch.bin'
-else:
-    EVAL_DATA = 'test_batch_org.bin'
+# if MODE == 'normal':
+#     # EVAL_DATA = 'test_batch_15_f2_e2_after_cae.bin'
+#     EVAL_DATA = 'test_batch_noise_custom_25.bin'
+#     # ORG_IMAGE_SIZE = 24
+# elif MODE == 'train':
+#     # ORG_IMAGE_SIZE = 32
+#     EVAL_DATA = 'test_batch.bin'
+# else:
+#     EVAL_DATA = 'test_batch_org.bin'
     # ORG_IMAGE_SIZE = 24
 #
 # if MODE == 'normal' or MODE == 'train':

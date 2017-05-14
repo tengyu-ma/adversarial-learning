@@ -13,18 +13,32 @@ def train_with_original_data():
 
 
 def generate_images_size24():
+    global FLAGS
     FLAGS.image_size = 32
+    FLAGS.get_correct_label = True
+    FLAGS.eval_data_set = "test_batch.bin"
     cifar10_adversarial.generate_images_size24()
+    FLAGS.get_correct_label = False
+
+
+def generate_images_with_noise():
+    global FLAGS
+    FLAGS.image_size = 24
+    FLAGS.get_correct_label = True
+    FLAGS.eval_data_set = "test_batch_size24.bin"
+    cifar10_adversarial.generate_images_with_noise()
+    FLAGS.get_correct_label = False
 
 
 def eval():
     global FLAGS
     FLAGS.image_size = 24
-    FLAGS.eval_data_set = "test_batch_size24.bin"
+    FLAGS.eval_data_set = "test_batch.bin"
     cifar10_eval.evaluate()
 
 
 if __name__ == '__main__':
     # train_with_original_data()
-    generate_images_size24()
+    # generate_images_size24()
+    generate_images_with_noise()
     # eval()
