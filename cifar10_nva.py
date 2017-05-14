@@ -7,6 +7,8 @@ from settings import *
 
 
 def train_with_original_data():
+    global FLAGS
+    FLAGS.image_size = 32
     cifar10_train.main()
 
 
