@@ -7,6 +7,7 @@ NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = 50000
 NUM_EXAMPLES_PER_EPOCH_FOR_EVAL = 10000
 
 FLAGS = tf.app.flags.FLAGS
+tf.app.flags.DEFINE_integer('batch_size', 128, """Number of images to process in a batch.""")
 tf.app.flags.DEFINE_string('checkpoint_dir', '/tmp/cifar10_train',
                            """Directory where to read model checkpoints.""")
 tf.app.flags.DEFINE_string('data_dir', '/tmp/cifar10_data',
@@ -19,7 +20,7 @@ tf.app.flags.DEFINE_string('eval_dir', '/tmp/cifar10_eval',
                            """Directory for evaluation""")
 tf.app.flags.DEFINE_integer('eval_interval_secs', 60 * 10,
                             """How often to run the eval.""")
-tf.app.flags.DEFINE_boolean('get_correct_label', False, """A strange but necessary method to get label""")
+tf.app.flags.DEFINE_boolean('get_single_label', False, """A strange but necessary method to get label""")
 tf.app.flags.DEFINE_integer('image_size', 24, """The size of cifar images used.""")
 tf.app.flags.DEFINE_boolean('log_device_placement', False,
                             """Whether to log device placement.""")
@@ -33,4 +34,3 @@ tf.app.flags.DEFINE_boolean('run_once', True, """Whether to run eval only once."
 tf.app.flags.DEFINE_string('train_dir', '/tmp/cifar10_train',
                            """Directory where to write event logs and checkpoint.""")
 tf.app.flags.DEFINE_boolean('use_fp16', False, """Train the model using fp16.""")
-tf.app.flags.DEFINE_integer('batch_size', 128, """Number of images to process in a batch.""")

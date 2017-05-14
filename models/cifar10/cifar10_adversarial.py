@@ -35,10 +35,6 @@ def generate_images_size24():
         variables_to_restore = variable_averages.variables_to_restore()
         saver = tf.train.Saver(variables_to_restore)
 
-        # Build the summary operation based on the TF collection of Summaries.
-        # summary_op = tf.summary.merge_all()
-        # summary_writer = tf.summary.FileWriter(FLAGS.eval_dir)
-
         with tf.Session() as sess:
 
             ckpt = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir)
@@ -83,14 +79,6 @@ def generate_images_size24():
                     true_count += np.sum(predictions)
                     step += 1
 
-                # precision = true_count / total_sample_count
-                # print('%s: precision @ 1 = %.3f' % (datetime.now(), precision))
-                #
-                # summary = tf.Summary()
-                # summary.ParseFromString(sess.run(summary_op))
-                # summary.value.add(tag='Precision @ 1', simple_value=precision)
-                # summary_writer.add_summary(summary, global_step)
-
                 file_to_write_org = os.path.join(FLAGS.data_dir, 'cifar-10-batches-bin/test_batch_size24.bin')
                 with open(file_to_write_org, 'wb') as f:
                     f.write(file_org)
@@ -127,10 +115,6 @@ def generate_images_with_noise():
             cifar10.MOVING_AVERAGE_DECAY)
         variables_to_restore = variable_averages.variables_to_restore()
         saver = tf.train.Saver(variables_to_restore)
-
-        # Build the summary operation based on the TF collection of Summaries.
-        # summary_op = tf.summary.merge_all()
-        # summary_writer = tf.summary.FileWriter(FLAGS.eval_dir)
 
         with tf.Session() as sess:
 
@@ -207,11 +191,6 @@ def generate_images_with_noise():
 
                 precision = true_count / total_sample_count
                 print('%s: precision @ 1 = %.3f' % (datetime.now(), precision))
-
-                # summary = tf.Summary()
-                # summary.ParseFromString(sess.run(summary_op))
-                # summary.value.add(tag='Precision @ 1', simple_value=precision)
-                # summary_writer.add_summary(summary, global_step)
 
                 file_name_org = os.path.join(FLAGS.data_dir, 'cifar-10-batches-bin/test_batch_eps%d_org.bin' % EPS)
                 with open(file_name_org, 'wb') as f:

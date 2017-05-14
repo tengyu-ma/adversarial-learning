@@ -256,7 +256,7 @@ def inputs(eval_data, data_dir, batch_size):
                                                      min_queue_examples, batch_size,
                                                      shuffle=False)
     # it's strange here, use labels to test, and use read_input.label to write the image
-    if FLAGS.get_correct_label:
+    if FLAGS.get_single_label:
         return images, read_input.label, resized_image
 
     return images, labels, reshaped_image
