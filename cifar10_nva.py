@@ -30,15 +30,23 @@ def generate_images_with_noise():
     FLAGS.get_correct_label = False
 
 
-def eval():
+def evaluate():
     global FLAGS
     FLAGS.image_size = 24
-    FLAGS.eval_data_set = "test_batch.bin"
+    FLAGS.eval_data_set = "test_batch_eps15_noise.bin"
     cifar10_eval.evaluate()
+
+
+def show_images_with_noise():
+    global FLAGS
+    FLAGS.image_size = 24
+    FLAGS.eval_data_set = "test_batch_size24.bin"
+    cifar10_adversarial.show_images_with_noise()
 
 
 if __name__ == '__main__':
     # train_with_original_data()
     # generate_images_size24()
-    generate_images_with_noise()
-    # eval()
+    # generate_images_with_noise()
+    show_images_with_noise()
+    # evaluate()
