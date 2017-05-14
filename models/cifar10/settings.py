@@ -1,16 +1,29 @@
 import tensorflow as tf
 
+FLAGS = tf.app.flags.FLAGS
+tf.app.flags.DEFINE_string('train_dir', '/tmp/cifar10_train',
+                           """Directory where to write event logs """
+                           """and checkpoint.""")
+tf.app.flags.DEFINE_string('data_dir', '/tmp/cifar10_train/cifar-10-batches-bin',
+                           """Directory where to get input """)
+tf.app.flags.DEFINE_string('eval_dir', '/tmp/cifar10_eval',
+                           """Directory for evaluation""")
+tf.app.flags.DEFINE_integer('max_steps', 1000000,
+                            """Number of batches to run.""")
+tf.app.flags.DEFINE_boolean('log_device_placement', False,
+                            """Whether to log device placement.""")
+tf.app.flags.DEFINE_integer('log_frequency', 10,
+                            """How often to log results to the console.""")
+
 # Global constants describing the CIFAR-10 data set.
 NUM_CLASSES = 10
 NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = 50000
 NUM_EXAMPLES_PER_EPOCH_FOR_EVAL = 10000
 
 IS_EVAL_DATA = 'test'  # 'train_eval'
-EVAL_DIR = '/tmp/cifar10_eval'
-DATA_DIR = '/tmp/cifar10_data/cifar-10-batches-bin'
-CHECKPOINT_DIR = '/tmp/cifar10_train'
-
-FLAGS = tf.app.flags.FLAGS
+# EVAL_DIR = '/tmp/cifar10_eval'
+# DATA_DIR = '/tmp/cifar10_data/cifar-10-batches-bin'
+# CHECKPOINT_DIR = '/tmp/cifar10_train'
 
 # MODE = '32_to_24'
 # MODE = '24_to_noise'

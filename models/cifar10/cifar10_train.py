@@ -43,20 +43,7 @@ import tensorflow as tf
 import numpy as np
 
 import cifar10
-
-FLAGS = tf.app.flags.FLAGS
-
-tf.app.flags.DEFINE_string('train_dir', '/tmp/cifar10_train',
-                           """Directory where to write event logs """
-                           """and checkpoint.""")
-tf.app.flags.DEFINE_integer('max_steps', 1000000,
-                            """Number of batches to run.""")
-tf.app.flags.DEFINE_boolean('log_device_placement', False,
-                            """Whether to log device placement.""")
-tf.app.flags.DEFINE_integer('log_frequency', 10,
-                            """How often to log results to the console.""")
-# MAX_STEPS = 70
-# IMAGE_SIZE = 24
+from settings import *
 
 def train():
     """Train CIFAR-10 for a number of steps."""
@@ -78,33 +65,6 @@ def train():
         # Build a Graph that trains the model with one batch of examples and
         # updates the model parameters.
         train_op = cifar10.train(loss, global_step)
-
-        # init_op = tf.global_variables_initializer()
-        #
-        # images_batch = list(np.ones([3072]))
-        # labels_batch = [1]
-        #
-        # with tf.Session() as sess:
-        #     sess.run(init_op)
-        #     # sess.run(images, feed_dict={image_0: images_batch})
-        #     print("test")
-        #     coord = tf.train.Coordinator()
-        #     try:
-        #         threads = []
-        #         for qr in tf.get_collection(tf.GraphKeys.QUEUE_RUNNERS):
-        #             threads.extend(qr.create_threads(sess, coord=coord, daemon=True,
-        #                                              start=True))
-        #         # sess.run(image_0, feed_dict={image_0: images_batch})
-        #         # while not coord.should_stop():
-        #         #     sess.run(image_0, feed_dict={image_0: images_batch})
-        #         sess.run(train_op, feed_dict={image_0: np.ones([3072]), label_0: labels_batch})
-        #
-        #     except Exception as e:  # pylint: disable=broad-except
-        #         coord.request_stop(e)
-        #
-        #     coord.request_stop()
-        #     coord.join(threads, stop_grace_period_secs=10)
-            # sess.run(train_op, feed_dict={image_0: images_batch, label_0: labels_batch})
 
         class _LoggerHook(tf.train.SessionRunHook):
             """Logs loss and runtime."""
