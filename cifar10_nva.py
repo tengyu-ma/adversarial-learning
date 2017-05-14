@@ -31,7 +31,7 @@ def generate_images_with_noise():
 def evaluate():
     global FLAGS
     FLAGS.image_size = 32
-    FLAGS.eval_data_set = "test_batch.bin"
+    FLAGS.eval_data_set = "test_batch_processed.bin"
     cifar10_eval.evaluate()
 
 
