@@ -105,6 +105,8 @@ def train():
 
 
 def main(argv=None):  # pylint: disable=unused-argument
+    global FLAGS
+    FLAGS.image_size = 32
     cifar10.maybe_download_and_extract()
     if tf.gfile.Exists(FLAGS.train_dir):
         tf.gfile.DeleteRecursively(FLAGS.train_dir)
