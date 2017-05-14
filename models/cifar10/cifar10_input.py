@@ -156,8 +156,8 @@ def distorted_inputs(data_dir, batch_size):
 
     reshaped_image = tf.reshape(reshaped_image, [32, 32, 3])
 
-    height = FLAGS.image_size
-    width = FLAGS.image_size
+    height = 24
+    width = 24
 
     # Image processing for training the network. Note the many random
     # distortions applied to the image.
@@ -230,8 +230,8 @@ def inputs(eval_data, data_dir, batch_size):
     read_input = read_cifar10(filename_queue)
     reshaped_image = tf.cast(read_input.uint8image, tf.float32)
 
-    height = FLAGS.image_size
-    width = FLAGS.image_size
+    height = 24
+    width = 24
 
     # Image processing for evaluation.
     # Crop the central [height, width] of the image.
