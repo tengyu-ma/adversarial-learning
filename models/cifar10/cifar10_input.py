@@ -26,8 +26,6 @@ from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
 import random
 
-IMAGE_SIZE = 24
-
 def read_cifar10(filename_queue):
     """Reads and parses examples from CIFAR10 data files.
 
@@ -59,8 +57,8 @@ def read_cifar10(filename_queue):
     # See http://www.cs.toronto.edu/~kriz/cifar.html for a description of the
     # input format.
     label_bytes = 1  # 2 for CIFAR-100
-    result.height = ORG_IMAGE_SIZE
-    result.width = ORG_IMAGE_SIZE
+    result.height = FLAGS.image_size
+    result.width = FLAGS.image_size
     result.depth = 3
     image_bytes = result.height * result.width * result.depth
     # Every record consists of a label followed by the image, with a
@@ -158,8 +156,8 @@ def distorted_inputs(data_dir, batch_size):
 
     reshaped_image = tf.reshape(reshaped_image, [32, 32, 3])
 
-    height = IMAGE_SIZE
-    width = IMAGE_SIZE
+    height = FLAGS.image_size
+    width = FLAGS.image_size
 
     # Image processing for training the network. Note the many random
     # distortions applied to the image.
@@ -218,7 +216,7 @@ def inputs(eval_data, data_dir, batch_size):
                      for i in xrange(1, 6)]
         num_examples_per_epoch = NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN
     else:
-        filenames = [os.path.join(data_dir, EVAL_DATA)]
+        filenames = [os.path.join(data_dir, FLAGS.eval_data_set)]
         num_examples_per_epoch = NUM_EXAMPLES_PER_EPOCH_FOR_EVAL
 
     for f in filenames:
@@ -232,8 +230,8 @@ def inputs(eval_data, data_dir, batch_size):
     read_input = read_cifar10(filename_queue)
     reshaped_image = tf.cast(read_input.uint8image, tf.float32)
 
-    height = IMAGE_SIZE
-    width = IMAGE_SIZE
+    height = FLAGS.image_size
+    width = FLAGS.image_size
 
     # Image processing for evaluation.
     # Crop the central [height, width] of the image.

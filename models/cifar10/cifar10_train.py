@@ -45,6 +45,7 @@ import numpy as np
 import cifar10
 from settings import *
 
+
 def train():
     """Train CIFAR-10 for a number of steps."""
     with tf.variable_scope('network1') as scope:

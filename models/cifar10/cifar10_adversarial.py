@@ -95,11 +95,11 @@ class Cifar:
 
             # Build the summary operation based on the TF collection of Summaries.
             summary_op = tf.summary.merge_all()
-            summary_writer = tf.summary.FileWriter(EVAL_DIR)
+            summary_writer = tf.summary.FileWriter(FLAGS.eval_dir)
 
             with tf.Session() as sess:
 
-                ckpt = tf.train.get_checkpoint_state(CHECKPOINT_DIR)
+                ckpt = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir)
                 if ckpt and ckpt.model_checkpoint_path:
                     saver.restore(sess, ckpt.model_checkpoint_path)
                     global_step = ckpt.model_checkpoint_path.split('/')[-1].split('-')[-1]
