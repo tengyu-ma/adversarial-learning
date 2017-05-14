@@ -33,9 +33,9 @@ tf.app.flags.DEFINE_string('train_dir', '/tmp/cifar10_train',
 tf.app.flags.DEFINE_boolean('use_fp16', False, """Train the model using fp16.""")
 tf.app.flags.DEFINE_integer('batch_size', 128, """Number of images to process in a batch.""")
 
-MODE = '32_to_24'
+# MODE = '32_to_24'
 # MODE = '24_to_noise'
-# MODE = 'normal'
+MODE = 'normal'
 # MODE = 'show'
 # MODE = 'vote_show'
 # MODE = 'train'
@@ -51,7 +51,7 @@ elif MODE == 'train':
 else:
     EVAL_DATA = 'test_batch_org.bin'
     # ORG_IMAGE_SIZE = 24
-
+#
 # if MODE == 'normal' or MODE == 'train':
 #     tf.app.flags.DEFINE_integer('batch_size', 128, """Number of images to process in a batch.""")
 # else:

@@ -76,8 +76,9 @@ def generate_images_size24():
                         file_org = data_bytes_org
                     else:
                         file_org += data_bytes_org
-
-                    print("Step: %d" % step)
+                    
+                    if step % 200 == 0:
+                        print("Step: %d" % step)
                     true_count += np.sum(predictions)
                     step += 1
 
@@ -89,7 +90,7 @@ def generate_images_size24():
                 summary.value.add(tag='Precision @ 1', simple_value=precision)
                 summary_writer.add_summary(summary, global_step)
 
-                file_to_write_org = os.path.join(FLAGS.data_dir, 'test_batch_size24.bin')
+                file_to_write_org = os.path.join(FLAGS.data_dir, 'cifar-10-batches-bin\test_batch_size24.bin')
                 with open(file_to_write_org, 'wb') as f:
                     f.write(file_org)
 
