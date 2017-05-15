@@ -119,7 +119,7 @@ def evaluate():
         with tf.variable_scope('network1') as scope:
             # Get images and labels for CIFAR-10.
             eval_data = FLAGS.eval_data == 'test'
-            images, labels = cifar10.inputs(eval_data=eval_data)
+            images, labels, org_images = cifar10.inputs(eval_data=eval_data)
 
             # Build a Graph that computes the logits predictions from the
             # inference model.

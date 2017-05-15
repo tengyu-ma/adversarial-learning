@@ -175,13 +175,13 @@ def inputs(eval_data):
     if not FLAGS.data_dir:
         raise ValueError('Please supply a data_dir')
     data_dir = os.path.join(FLAGS.data_dir, 'cifar-10-batches-bin')
-    images, labels = cifar10_input.inputs(eval_data=eval_data,
+    images, labels, org_images = cifar10_input.inputs(eval_data=eval_data,
                                           data_dir=data_dir,
                                           batch_size=FLAGS.batch_size)
     if FLAGS.use_fp16:
         images = tf.cast(images, tf.float16)
         labels = tf.cast(labels, tf.float16)
-    return images, labels
+    return images, labels, org_images
 
 
 def inference(images):
