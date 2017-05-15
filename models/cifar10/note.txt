@@ -6,3 +6,8 @@ original data to train
 34060 0.820
 47893 0.828
 58610 0.830
+
+original data and original program
+6192 0.791
+8318 0.805
+10381 0.814
