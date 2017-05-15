@@ -45,8 +45,8 @@ def show_images_with_noise():
 
 
 if __name__ == '__main__':
-    # train_with_original_data()
+    train_with_original_data()
     # generate_images_size24()
     # generate_images_with_noise()
     # show_images_with_noise()
-    evaluate()
+    # evaluate()
