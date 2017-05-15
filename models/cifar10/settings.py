@@ -34,3 +34,4 @@ tf.app.flags.DEFINE_boolean('run_once', True, """Whether to run eval only once."
 tf.app.flags.DEFINE_string('train_dir', '/tmp/cifar10_train',
                            """Directory where to write event logs and checkpoint.""")
 tf.app.flags.DEFINE_boolean('use_fp16', False, """Train the model using fp16.""")
+tf.app.flags.DEFINE_boolean('use_processed_data', True, """Use processed data or not.""")
