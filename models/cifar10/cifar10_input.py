@@ -23,6 +23,7 @@ import os
 
 from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
+from settings import *
 
 # Process images of this size. Note that this differs from the original CIFAR
 # image size of 32 x 32. If one alters this number, then the entire model
@@ -66,8 +67,8 @@ def read_cifar10(filename_queue):
     # See http://www.cs.toronto.edu/~kriz/cifar.html for a description of the
     # input format.
     label_bytes = 1  # 2 for CIFAR-100
-    result.height = 32
-    result.width = 32
+    result.height = FLAGS.image_size
+    result.width = FLAGS.image_size
     result.depth = 3
     image_bytes = result.height * result.width * result.depth
     # Every record consists of a label followed by the image, with a
@@ -149,8 +150,12 @@ def distorted_inputs(data_dir, batch_size):
       images: Images. 4D tensor of [batch_size, IMAGE_SIZE, IMAGE_SIZE, 3] size.
       labels: Labels. 1D tensor of [batch_size] size.
     """
-    filenames = [os.path.join(data_dir, 'data_batch_%d.bin' % i)
-                 for i in xrange(1, 6)]
+    if FLAGS.use_processed_data:
+        filenames = [os.path.join(data_dir, 'data_batch_%d_processed.bin' % i)
+                     for i in xrange(1, 6)]
+    else:
+        filenames = [os.path.join(data_dir, 'data_batch_%d.bin' % i)
+                     for i in xrange(1, 6)]
     for f in filenames:
         if not tf.gfile.Exists(f):
             raise ValueError('Failed to find file: ' + f)
@@ -214,11 +219,15 @@ def inputs(eval_data, data_dir, batch_size):
       labels: Labels. 1D tensor of [batch_size] size.
     """
     if not eval_data:
-        filenames = [os.path.join(data_dir, 'data_batch_%d.bin' % i)
-                     for i in xrange(1, 6)]
+        if FLAGS.use_processed_data:
+            filenames = [os.path.join(data_dir, 'data_batch_%d_processed.bin' % i)
+                         for i in xrange(1, 6)]
+        else:
+            filenames = [os.path.join(data_dir, 'data_batch_%d.bin' % i)
+                         for i in xrange(1, 6)]
         num_examples_per_epoch = NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN
     else:
-        filenames = [os.path.join(data_dir, 'test_batch.bin')]
+        filenames = [os.path.join(data_dir, FLAGS.eval_data_set)]
         num_examples_per_epoch = NUM_EXAMPLES_PER_EPOCH_FOR_EVAL
 
     for f in filenames:
@@ -253,6 +262,11 @@ def inputs(eval_data, data_dir, batch_size):
                              min_fraction_of_examples_in_queue)
 
     # Generate a batch of images and labels by building up a queue of examples.
-    return _generate_image_and_label_batch(float_image, read_input.label,
-                                           min_queue_examples, batch_size,
-                                           shuffle=False)
+    images, labels = _generate_image_and_label_batch(float_image, read_input.label,
+                                                     min_queue_examples, batch_size,
+                                                     shuffle=False)
+    # it's strange here, use labels to test, and use read_input.label to write the image
+    if FLAGS.get_single_label:
+        return images, read_input.label, resized_image
+
+    return images, labels, reshaped_image

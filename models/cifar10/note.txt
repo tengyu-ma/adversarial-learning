@@ -9,5 +9,7 @@ original data to train
 
 original data and original program
 6192 0.791
+6999 0.794
 8318 0.805
 10381 0.814
+13820 0.821
