@@ -7,14 +7,11 @@ from settings import *
 
 
 def train_with_original_data():
-    global FLAGS
-    FLAGS.image_size = 32
     cifar10_train.main()
 
 
 def generate_images_size24():
     global FLAGS
-    FLAGS.image_size = 32
     FLAGS.get_single_label = True
     FLAGS.eval_data_set = "test_batch.bin"
     cifar10_adversarial.generate_images_size24()
@@ -32,8 +29,8 @@ def generate_images_with_noise():
 
 def evaluate():
     global FLAGS
-    FLAGS.image_size = 32
-    FLAGS.eval_data_set = "test_batch_processed.bin"
+    FLAGS.image_size = 24
+    FLAGS.eval_data_set = "test_batch_size24.bin"
     cifar10_eval.evaluate()
 
 

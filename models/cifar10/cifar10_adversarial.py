@@ -20,6 +20,7 @@ from PIL import Image
 
 def generate_images_size24():
     with tf.variable_scope('network1') as scope:
+        tf.set_random_seed(1)
         batch_size = FLAGS.batch_size
         FLAGS.image_size = 32
         FLAGS.batch_size = 1
@@ -91,6 +92,7 @@ def generate_images_size24():
 
 def generate_images_with_noise():
     with tf.variable_scope('network1') as scope:
+        tf.set_random_seed(1)
         batch_size = FLAGS.batch_size
         FLAGS.image_size = 24
         FLAGS.batch_size = 1
@@ -206,107 +208,97 @@ def generate_images_with_noise():
 
 
 def show_images_with_noise():
-    with tf.variable_scope('network1') as scope:
-        batch_size = FLAGS.batch_size
-        FLAGS.image_size = 24
-        FLAGS.batch_size = 1
-        images, labels, images_org = cifar10.inputs(eval_data=FLAGS.eval_data)
-        logits = cifar10.inference(images)
+    with tf.Graph().as_default():
+        # tf.set_random_seed(1)
+        with tf.variable_scope('network1') as scope:
+            batch_size = FLAGS.batch_size
+            FLAGS.image_size = 24
+            FLAGS.batch_size = 1
+            images, labels, images_org = cifar10.inputs(eval_data=FLAGS.eval_data)
+            logits = cifar10.inference(images)
 
-        loss = cifar10.loss(logits, labels)
-        nabla_J = tf.gradients(loss, images)  # apply nabla operator to calculate the gradient
-        sign_nabla_J = tf.sign(nabla_J)  # calculate the sign of the gradient of cost function
-        eta = tf.multiply(sign_nabla_J, EPS)
-        eta_reshaped = tf.reshape(eta, images_org._shape)
-        images_new = tf.add(images_org, eta_reshaped)
-        images_org = tf.cast(images_org, tf.float32)
+            loss = cifar10.loss(logits, labels)
+            nabla_J = tf.gradients(loss, images)  # apply nabla operator to calculate the gradient
+            sign_nabla_J = tf.sign(nabla_J)  # calculate the sign of the gradient of cost function
+            eta = tf.multiply(sign_nabla_J, EPS)
+            eta_reshaped = tf.reshape(eta, images_org._shape)
+            images_new = tf.add(images_org, eta_reshaped)
+            images_org = tf.cast(images_org, tf.float32)
 
-        # Calculate predictions.
-        top_k_op = tf.nn.in_top_k(logits, labels, 1)
+            # Calculate predictions.
+            top_k_op = tf.nn.in_top_k(logits, labels, 1)
 
-        # Restore the moving average version of the learned variables for eval.
-        variable_averages = tf.train.ExponentialMovingAverage(
-            cifar10.MOVING_AVERAGE_DECAY)
-        variables_to_restore = variable_averages.variables_to_restore()
-        saver = tf.train.Saver(variables_to_restore)
+            # Restore the moving average version of the learned variables for eval.
+            variable_averages = tf.train.ExponentialMovingAverage(
+                cifar10.MOVING_AVERAGE_DECAY)
+            variables_to_restore = variable_averages.variables_to_restore()
+            saver = tf.train.Saver(variables_to_restore)
 
-        with tf.Session() as sess:
+            with tf.Session() as sess:
 
-            ckpt = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir)
-            if ckpt and ckpt.model_checkpoint_path:
-                saver.restore(sess, ckpt.model_checkpoint_path)
-                global_step = ckpt.model_checkpoint_path.split('/')[-1].split('-')[-1]
-            else:
-                print('No checkpoint file found')
-                return
+                ckpt = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir)
+                if ckpt and ckpt.model_checkpoint_path:
+                    saver.restore(sess, ckpt.model_checkpoint_path)
+                    global_step = ckpt.model_checkpoint_path.split('/')[-1].split('-')[-1]
+                else:
+                    print('No checkpoint file found')
+                    return
 
-            coord = tf.train.Coordinator()
-            try:
-                threads = []
-                for qr in tf.get_collection(tf.GraphKeys.QUEUE_RUNNERS):
-                    threads.extend(qr.create_threads(sess, coord=coord, daemon=True,
-                                                     start=True))
+                coord = tf.train.Coordinator()
+                try:
+                    threads = []
+                    for qr in tf.get_collection(tf.GraphKeys.QUEUE_RUNNERS):
+                        threads.extend(qr.create_threads(sess, coord=coord, daemon=True,
+                                                         start=True))
 
-                step = 0
-                true_count = 0
-                num_iter = 10
-                # num_iter = int(math.ceil(FLAGS.num_examples / FLAGS.batch_size))
-                total_sample_count = num_iter * FLAGS.batch_size
-                while step < num_iter and not coord.should_stop():
-                    predictions, images_array_org, images_array_new, images_array, labels_array = sess.run(
-                        [top_k_op, images_org, images_new, images, labels])
+                    step = 0
+                    true_count = 0
+                    num_iter = 5
+                    # num_iter = int(math.ceil(FLAGS.num_examples / FLAGS.batch_size))
+                    total_sample_count = num_iter * FLAGS.batch_size
+                    while step < num_iter and not coord.should_stop():
+                        predictions, images_array_org, images_array_new, images_array, labels_array = sess.run(
+                            [top_k_op, images_org, images_new, images, labels])
 
-                    images_dif = images_array_new - images_array_org
+                        images_dif = images_array_new - images_array_org
 
-                    images_array_new = (images_array_new - 128) * 128 / (128 + EPS) + 128
-                    kernel_org = [[0, 1, 0], [1, 4, 1], [0, 1, 0]]
-                    kernel = np.array(kernel_org) / np.sum(kernel_org) * 1.0
-                    images_array_new = cv2.filter2D(images_array_new, -1, kernel)
-                    images_array_new = np.array(images_array_new).astype('uint8')
-                    # images_array_new = cv2.blur(images_array_new, (2, 2))
-                    # images_array_new = cv2.GaussianBlur(images_array_new, (3, 3), 0)
+                        images_array_new = (images_array_new - 128) * 128 / (128 + EPS) + 128
+                        kernel_org = [[0, 1, 0], [1, 4, 1], [0, 1, 0]]
+                        kernel = np.array(kernel_org) / np.sum(kernel_org) * 1.0
+                        images_array_new = cv2.filter2D(images_array_new, -1, kernel)
+                        images_array_new = np.array(images_array_new).astype('uint8')
+                        # images_array_new = cv2.blur(images_array_new, (2, 2))
+                        # images_array_new = cv2.GaussianBlur(images_array_new, (3, 3), 0)
 
-                    # img = images_array_new.astype(np.uint8)
-                    # images_array_new = cv2.fastNlMeansDenoisingColored(img, None, 10, 7, 21)
-                    # images_array_new = cv2.bilateralFilter(images_array_new, 9, 75, 75)
+                        # img = images_array_new.astype(np.uint8)
+                        # images_array_new = cv2.fastNlMeansDenoisingColored(img, None, 10, 7, 21)
+                        # images_array_new = cv2.bilateralFilter(images_array_new, 9, 75, 75)
 
-                    max_value = np.max(images_dif)
-                    min_value = np.min(images_dif)
-                    try:
-                        assert max_value == 15
-                        assert min_value == -15
-                    except:
-                        raise
+                        max_value = np.max(images_dif)
+                        min_value = np.min(images_dif)
+                        try:
+                            assert max_value == 15
+                            assert min_value == -15
+                        except:
+                            raise
 
-                    plt.figure(1)
-                    plt.subplot(241)
-                    plt.imshow(images_array_org[:, :, 0])
-                    plt.subplot(242)
-                    plt.imshow(images_array_org[:, :, 1])
-                    plt.subplot(243)
-                    plt.imshow(images_array_org[:, :, 2])
-                    plt.subplot(244)
-                    plt.imshow(images_array_org)
-                    plt.subplot(245)
-                    plt.imshow(images_array_new[:, :, 0])
-                    plt.subplot(246)
-                    plt.imshow(images_array_new[:, :, 1])
-                    plt.subplot(247)
-                    plt.imshow(images_array_new[:, :, 1])
-                    plt.subplot(248)
-                    plt.imshow(images_array_new)
-                    plt.show()
+                        plt.figure(1)
+                        plt.subplot(121)
+                        plt.imshow(images_array_org)
+                        plt.subplot(122)
+                        plt.imshow(images_array_new)
+                        plt.show()
 
-                    true_count += np.sum(predictions)
-                    step += 1
+                        true_count += np.sum(predictions)
+                        step += 1
 
-                precision = true_count / total_sample_count
-                print('%s: precision @ 1 = %.3f' % (datetime.now(), precision))
+                    precision = true_count / total_sample_count
+                    print('%s: precision @ 1 = %.3f' % (datetime.now(), precision))
 
-            except Exception as e:  # pylint: disable=broad-except
-                coord.request_stop(e)
+                except Exception as e:  # pylint: disable=broad-except
+                    coord.request_stop(e)
 
-        FLAGS.batch_size = batch_size
+            FLAGS.batch_size = batch_size
 
 
 if __name__ == '__main__':
