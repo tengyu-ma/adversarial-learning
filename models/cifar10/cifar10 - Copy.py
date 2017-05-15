@@ -41,25 +41,16 @@ import sys
 import tarfile
 
 from six.moves import urllib
-import tensorflow as tf
+from settings import *
 
+import tensorflow as tf
 import cifar10_input
 
-FLAGS = tf.app.flags.FLAGS
-
-# Basic model parameters.
-tf.app.flags.DEFINE_integer('batch_size', 128,
-                            """Number of images to process in a batch.""")
-tf.app.flags.DEFINE_string('data_dir', '/tmp/cifar10_data',
-                           """Path to the CIFAR-10 data directory.""")
-tf.app.flags.DEFINE_boolean('use_fp16', False,
-                            """Train the model using fp16.""")
-
 # Global constants describing the CIFAR-10 data set.
-IMAGE_SIZE = cifar10_input.IMAGE_SIZE
-NUM_CLASSES = cifar10_input.NUM_CLASSES
-NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = cifar10_input.NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN
-NUM_EXAMPLES_PER_EPOCH_FOR_EVAL = cifar10_input.NUM_EXAMPLES_PER_EPOCH_FOR_EVAL
+# IMAGE_SIZE = IMAGE_SIZE
+# NUM_CLASSES = NUM_CLASSES
+# NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = cifar10_input.NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN
+# NUM_EXAMPLES_PER_EPOCH_FOR_EVAL = cifar10_input.NUM_EXAMPLES_PER_EPOCH_FOR_EVAL
 
 # Constants describing the training process.
 MOVING_AVERAGE_DECAY = 0.9999  # The decay to use for the moving average.
@@ -77,10 +68,10 @@ DATA_URL = 'http://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz'
 
 def _activation_summary(x):
     """Helper to create summaries for activations.
-  
+
     Creates a summary that provides a histogram of activations.
     Creates a summary that measures the sparsity of activations.
-  
+
     Args:
       x: Tensor
     Returns:
@@ -96,12 +87,12 @@ def _activation_summary(x):
 
 def _variable_on_cpu(name, shape, initializer):
     """Helper to create a Variable stored on CPU memory.
-  
+
     Args:
       name: name of the variable
       shape: list of ints
       initializer: initializer for Variable
-  
+
     Returns:
       Variable Tensor
     """
@@ -113,17 +104,17 @@ def _variable_on_cpu(name, shape, initializer):
 
 def _variable_with_weight_decay(name, shape, stddev, wd):
     """Helper to create an initialized Variable with weight decay.
-  
+
     Note that the Variable is initialized with a truncated normal distribution.
     A weight decay is added only if one is specified.
-  
+
     Args:
       name: name of the variable
       shape: list of ints
       stddev: standard deviation of a truncated Gaussian
       wd: add L2Loss weight decay multiplied by this float. If None, weight
           decay is not added for this Variable.
-  
+
     Returns:
       Variable Tensor
     """
@@ -140,11 +131,11 @@ def _variable_with_weight_decay(name, shape, stddev, wd):
 
 def distorted_inputs():
     """Construct distorted input for CIFAR training using the Reader ops.
-  
+
     Returns:
       images: Images. 4D tensor of [batch_size, IMAGE_SIZE, IMAGE_SIZE, 3] size.
       labels: Labels. 1D tensor of [batch_size] size.
-  
+
     Raises:
       ValueError: If no data_dir
     """
@@ -161,35 +152,35 @@ def distorted_inputs():
 
 def inputs(eval_data):
     """Construct input for CIFAR evaluation using the Reader ops.
-  
+
     Args:
       eval_data: bool, indicating if one should use the train or eval data set.
-  
+
     Returns:
       images: Images. 4D tensor of [batch_size, IMAGE_SIZE, IMAGE_SIZE, 3] size.
       labels: Labels. 1D tensor of [batch_size] size.
-  
+
     Raises:
       ValueError: If no data_dir
     """
     if not FLAGS.data_dir:
         raise ValueError('Please supply a data_dir')
     data_dir = os.path.join(FLAGS.data_dir, 'cifar-10-batches-bin')
-    images, labels = cifar10_input.inputs(eval_data=eval_data,
-                                          data_dir=data_dir,
-                                          batch_size=FLAGS.batch_size)
+    images, labels, org_images = cifar10_input.inputs(eval_data=eval_data,
+                                                      data_dir=data_dir,
+                                                      batch_size=FLAGS.batch_size)
     if FLAGS.use_fp16:
         images = tf.cast(images, tf.float16)
         labels = tf.cast(labels, tf.float16)
-    return images, labels
+    return images, labels, org_images
 
 
 def inference(images):
     """Build the CIFAR-10 model.
-  
+
     Args:
       images: Images returned from distorted_inputs() or inputs().
-  
+
     Returns:
       Logits.
     """
@@ -272,13 +263,13 @@ def inference(images):
 
 def loss(logits, labels):
     """Add L2Loss to all the trainable variables.
-  
+
     Add summary for "Loss" and "Loss/avg".
     Args:
       logits: Logits from inference().
       labels: Labels from distorted_inputs or inputs(). 1-D tensor
               of shape [batch_size]
-  
+
     Returns:
       Loss tensor of type float.
     """
@@ -296,10 +287,10 @@ def loss(logits, labels):
 
 def _add_loss_summaries(total_loss):
     """Add summaries for losses in CIFAR-10 model.
-  
+
     Generates moving average for all losses and associated summaries for
     visualizing the performance of the network.
-  
+
     Args:
       total_loss: Total loss from loss().
     Returns:
@@ -323,10 +314,10 @@ def _add_loss_summaries(total_loss):
 
 def train(total_loss, global_step):
     """Train CIFAR-10 model.
-  
+
     Create an optimizer and apply to all trainable variables. Add moving
     average for all trainable variables.
-  
+
     Args:
       total_loss: Total loss from loss().
       global_step: Integer Variable counting the number of training steps
