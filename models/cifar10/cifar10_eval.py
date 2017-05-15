@@ -115,7 +115,7 @@ def eval_once(saver, summary_writer, top_k_op, summary_op):
 
 def evaluate():
     """Eval CIFAR-10 for a number of steps."""
-    with tf.Graph().as_default() as g:
+    with tf.device('/cpu:0'):
         with tf.variable_scope('network1') as scope:
             # Get images and labels for CIFAR-10.
             eval_data = FLAGS.eval_data == 'test'
