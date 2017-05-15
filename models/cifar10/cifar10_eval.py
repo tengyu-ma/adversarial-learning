@@ -55,7 +55,7 @@ tf.app.flags.DEFINE_integer('eval_interval_secs', 60 * 5,
                             """How often to run the eval.""")
 tf.app.flags.DEFINE_integer('num_examples', 10000,
                             """Number of examples to run.""")
-tf.app.flags.DEFINE_boolean('run_once', False,
+tf.app.flags.DEFINE_boolean('run_once', True,
                             """Whether to run eval only once.""")
 
 
@@ -137,7 +137,7 @@ def evaluate():
             # Build the summary operation based on the TF collection of Summaries.
             summary_op = tf.summary.merge_all()
 
-            summary_writer = tf.summary.FileWriter(FLAGS.eval_dir, g)
+            summary_writer = tf.summary.FileWriter(FLAGS.eval_dir)
 
             while True:
                 eval_once(saver, summary_writer, top_k_op, summary_op)
