@@ -5,6 +5,7 @@ import cifar10_adversarial
 import autoencoder_run
 import generate_bin_from_npy
 import io_binary
+import sys
 from settings import *
 
 
@@ -21,32 +22,37 @@ def train_with_processed_data():
     cifar10_train.main()
 
 
-def generate_images_size24():
+def generate_images_size24(i=0):
     global FLAGS
     FLAGS.get_single_label = True
-    FLAGS.use_processed_data = False
-    if not FLAGS.use_processed_data:
+    FLAGS.use_processed_data = False  # to set
+    if i == 0:
         FLAGS.eval_data_set = "test_batch.bin"
     else:
-        FLAGS.eval_data_set = "test_batch_processed.bin"
-    filename = FLAGS.eval_data_set
-    filename = filename.split('.')[0] + '_size24.bin'
+        FLAGS.eval_data_set = "data_batch_%d.bin" % i
+    filename = FLAGS.eval_data_set.split('.')[0]
+    if FLAGS.use_processed_data:
+        filename += '_processed'
+        FLAGS.eval_data_set = filename + '.bin'
+    filename += '_size24.bin'
     FLAGS.generate_data_set = filename
     cifar10_adversarial.generate_images_size24()
-    FLAGS.get_single_label = False
 
 
-def generate_images_with_noise():
+def generate_images_with_noise(i=0):
     global FLAGS
     FLAGS.image_size = 24
     FLAGS.get_single_label = True
     FLAGS.use_processed_data = False
-    if not FLAGS.use_processed_data:
-        FLAGS.eval_data_set = "test_batch"
+    if i == 0:
+        FLAGS.eval_data_set = "test_batch.bin"
     else:
-        FLAGS.eval_data_set = "test_batch_processed"
-    filename = FLAGS.eval_data_set
-    filename = filename.split('.')[0] + '_size24'
+        FLAGS.eval_data_set = "data_batch_%d.bin" % i
+    filename = FLAGS.eval_data_set.split('.')[0]
+    if FLAGS.use_processed_data:
+        filename += '_processed'
+    filename += '_size24'
+    FLAGS.eval_data_set = filename + '.bin'
     filename = filename + '_eps%d' % EPS
     FLAGS.generate_data_set = filename
     cifar10_adversarial.generate_images_with_noise()
@@ -78,8 +84,8 @@ def process_image_with_autoencoder():
 
 if __name__ == '__main__':
     # train_with_original_data()
-    # generate_images_size24()
+    # generate_images_size24(5)
     # generate_images_with_noise()
-    process_image_with_autoencoder()
+    # process_image_with_autoencoder()
     # show_images_with_noise()
-    # evaluate()
+    evaluate()

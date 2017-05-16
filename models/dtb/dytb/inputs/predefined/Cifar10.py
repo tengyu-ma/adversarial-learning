@@ -151,7 +151,7 @@ class Cifar10(Input):
         if input_type == InputType.train:
             filenames = [
                 os.path.join(self._data_dir,
-                             'cifar-10-batches-bin/data_batch_size24_%d.bin' % i)
+                             'cifar-10-batches-bin/data_batch_%d_size24.bin' % i)
                 for i in range(1, 6)
             ]
             filename_test = [
