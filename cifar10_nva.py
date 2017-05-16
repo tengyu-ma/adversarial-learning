@@ -50,8 +50,8 @@ def process_image_with_autoencoder():
 
 if __name__ == '__main__':
     # train_with_original_data()
-    generate_images_size24()
-    generate_images_with_noise()
-    # process_image_with_autoencoder()
+    # generate_images_size24()
+    # generate_images_with_noise()
+    process_image_with_autoencoder()
     # show_images_with_noise()
     # evaluate()
