@@ -10,7 +10,3 @@ __pycache__/
 # Data folder
 ImageNet_data/
 images/
-models/dtb/dytb/inputs/predefined/data
-
-# log folder
-models/dtb/log
