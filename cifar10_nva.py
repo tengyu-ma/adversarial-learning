@@ -3,6 +3,7 @@ import cifar10_train
 import cifar10_eval
 import cifar10_adversarial
 import autoencoder_run
+import generate_bin_from_npy
 from copy import copy
 from settings import *
 
@@ -44,12 +45,13 @@ def show_images_with_noise():
 
 def process_image_with_autoencoder():
     autoencoder_run.process_image_with_autoenccoder()
+    generate_bin_from_npy.main()
 
 
 if __name__ == '__main__':
     # train_with_original_data()
     generate_images_size24()
-    # generate_images_with_noise()
+    generate_images_with_noise()
     # process_image_with_autoencoder()
     # show_images_with_noise()
     # evaluate()
