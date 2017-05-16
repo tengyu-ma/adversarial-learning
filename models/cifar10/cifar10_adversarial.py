@@ -80,7 +80,7 @@ def generate_images_size24():
                     true_count += np.sum(predictions)
                     step += 1
 
-                file_to_write_org = os.path.join(FLAGS.data_dir, 'cifar-10-batches-bin/test_batch_size24.bin')
+                file_to_write_org = os.path.join(FLAGS.data_dir, 'cifar-10-batches-bin/%s' % FLAGS.generate_data_set)
                 with open(file_to_write_org, 'wb') as f:
                     f.write(file_org)
 
@@ -194,10 +194,10 @@ def generate_images_with_noise():
                 precision = true_count / total_sample_count
                 print('%s: precision @ 1 = %.3f' % (datetime.now(), precision))
 
-                file_name_org = os.path.join(FLAGS.data_dir, 'cifar-10-batches-bin/test_batch_eps%d_org.bin' % EPS)
+                file_name_org = os.path.join(FLAGS.data_dir, 'cifar-10-batches-bin/%s_org.bin' % FLAGS.generate_data_set)
                 with open(file_name_org, 'wb') as f:
                     f.write(file_org)
-                file_name_noise = os.path.join(FLAGS.data_dir, 'cifar-10-batches-bin/test_batch_eps%d_noise.bin' % EPS)
+                file_name_noise = os.path.join(FLAGS.data_dir, 'cifar-10-batches-bin/%s_noise.bin' % FLAGS.generate_data_set)
                 with open(file_name_noise, 'wb') as f:
                     f.write(file_new)
 

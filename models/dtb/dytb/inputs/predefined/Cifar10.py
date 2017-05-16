@@ -168,7 +168,7 @@ class Cifar10(Input):
         else:
             filenames = [
                 os.path.join(self._data_dir,
-                             'cifar-10-batches-bin/test_batch_size24.bin')
+                             'cifar-10-batches-bin/%s' % FLAGS.autoencoder_test_set)
             ]
             num_examples_per_epoch = self._num_examples_per_epoch_for_eval
 
