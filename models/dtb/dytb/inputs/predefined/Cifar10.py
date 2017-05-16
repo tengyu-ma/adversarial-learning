@@ -18,6 +18,7 @@ import tensorflow as tf
 from ..processing import build_batch
 from ..images import scale_image
 from ..interfaces import Input, InputType
+from settings import *
 
 
 class Cifar10(Input):
@@ -35,8 +36,9 @@ class Cifar10(Input):
         self._num_examples_per_epoch_for_eval = 10000
         self._num_examples_per_epoch_for_test = self._num_examples_per_epoch_for_eval
 
-        self._data_dir = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), 'data', 'Cifar10')
+        # self._data_dir = os.path.join(
+        #     os.path.dirname(os.path.abspath(__file__)), 'data', 'Cifar10')
+        self._data_dir = '/tmp/cifar10_data'
         self._data_url = 'http://www.cs.toronto.edu/~kriz/cifar-10-binary.tar.gz'
         self._maybe_download_and_extract()
 
@@ -149,12 +151,12 @@ class Cifar10(Input):
         if input_type == InputType.train:
             filenames = [
                 os.path.join(self._data_dir,
-                             'cifar-10-batches-bin/data_batch_24_%d.bin' % i)
+                             'cifar-10-batches-bin/data_batch_size24_%d.bin' % i)
                 for i in range(1, 6)
             ]
             filename_test = [
                 os.path.join(self._data_dir,
-                             'cifar-10-batches-bin/test_batch_new_25_denoised.bin')
+                             'cifar-10-batches-bin/%s' % FLAGS.autoencoder_test_set)
             ]
             filenames = filenames + filename_test
             num_examples_per_epoch = self._num_examples_per_epoch_for_train
@@ -166,7 +168,7 @@ class Cifar10(Input):
         else:
             filenames = [
                 os.path.join(self._data_dir,
-                             'cifar-10-batches-bin/test_batch_new_25_denoised.bin')
+                             'cifar-10-batches-bin/test_batch_size24.bin')
             ]
             num_examples_per_epoch = self._num_examples_per_epoch_for_eval
 

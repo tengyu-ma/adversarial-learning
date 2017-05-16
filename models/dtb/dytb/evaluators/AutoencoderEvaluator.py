@@ -163,9 +163,9 @@ class AutoencoderEvaluator(Evaluator):
                     input_images = np.reshape(input_images, (-1, 24, 24, 3))
                     input_labels = np.reshape(input_labels, (-1, 1))
 
-                    np.save("input_images.npy", input_images)
-                    np.save("output_images.npy", output_images)
-                    np.save("input_labels.npy", input_labels)
+                    np.save("/tmp/input_images.npy", input_images)
+                    np.save("/tmp/output_images.npy", output_images)
+                    np.save("/tmp/input_labels.npy", input_labels)
 
                     average_error = error_sum / step
                 except Exception as exc:
