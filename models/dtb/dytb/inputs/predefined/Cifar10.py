@@ -149,11 +149,18 @@ class Cifar10(Input):
         InputType.check(input_type)
 
         if input_type == InputType.train:
-            filenames = [
-                os.path.join(self._data_dir,
-                             'cifar-10-batches-bin/data_batch_%d_size24.bin' % i)
-                for i in range(1, 6)
-            ]
+            if not FLAGS.use_processed_data:
+                filenames = [
+                    os.path.join(self._data_dir,
+                                 'cifar-10-batches-bin/data_batch_%d_size24.bin' % i)
+                    for i in range(1, 6)
+                ]
+            else:
+                filenames = [
+                    os.path.join(self._data_dir,
+                                 'cifar-10-batches-bin/data_batch_%d_processed_size24.bin' % i)
+                    for i in range(1, 6)
+                ]
             filename_test = [
                 os.path.join(self._data_dir,
                              'cifar-10-batches-bin/%s' % FLAGS.autoencoder_test_set)

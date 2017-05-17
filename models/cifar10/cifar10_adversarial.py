@@ -153,15 +153,20 @@ def generate_images_with_noise():
                     data_bytes_org = bytes(data_list_org)
 
                     images_array_new = (images_array_new - 128) * 128 / (128 + EPS) + 128
-                    kernel_org = [[0, 1, 0], [1, 4, 1], [0, 1, 0]]
-                    kernel = np.array(kernel_org) / np.sum(kernel_org) * 1.0
-                    images_array_new = cv2.filter2D(images_array_new, -1, kernel)
-                    # images_array_new = cv2.blur(images_array_new, (2, 2))
-                    # images_array_new = cv2.GaussianBlur(images_array_new, (3, 3), 0)
 
-                    # img = images_array_new.astype(np.uint8)
-                    # images_array_new = cv2.fastNlMeansDenoisingColored(img, None, 10, 7, 21)
-                    # images_array_new = cv2.bilateralFilter(images_array_new, 9, 75, 75)
+                    if FLAGS.denoise_method == 'filter2D':
+                        kernel_org = [[0, 1, 0], [1, 4, 1], [0, 1, 0]]
+                        kernel = np.array(kernel_org) / np.sum(kernel_org) * 1.0
+                        images_array_new = cv2.filter2D(images_array_new, -1, kernel)
+                    elif FLAGS.denoise_method == 'average':
+                        images_array_new = cv2.blur(images_array_new, (2, 2))
+                    elif FLAGS.denoise_method == 'Gaussian':
+                        images_array_new = cv2.GaussianBlur(images_array_new, (3, 3), 0)
+                    elif FLAGS.denoise_method == 'NLMeans':
+                        img = images_array_new.astype(np.uint8)
+                        images_array_new = cv2.fastNlMeansDenoisingColored(img, None, 10, 7, 21)
+                    elif FLAGS.denoise_method == 'bilateral':
+                        images_array_new = cv2.bilateralFilter(images_array_new, 9, 75, 75)
 
                     image_matrix_new = np.array([images_array_new[:, :, 0], images_array_new[:, :, 1],
                                                  images_array_new[:, :, 2]])
@@ -263,16 +268,20 @@ def show_images_with_noise():
                         images_dif = images_array_new - images_array_org
 
                         images_array_new = (images_array_new - 128) * 128 / (128 + EPS) + 128
-                        kernel_org = [[0, 1, 0], [1, 4, 1], [0, 1, 0]]
-                        kernel = np.array(kernel_org) / np.sum(kernel_org) * 1.0
-                        images_array_new = cv2.filter2D(images_array_new, -1, kernel)
-                        images_array_new = np.array(images_array_new).astype('uint8')
-                        # images_array_new = cv2.blur(images_array_new, (2, 2))
-                        # images_array_new = cv2.GaussianBlur(images_array_new, (3, 3), 0)
 
-                        # img = images_array_new.astype(np.uint8)
-                        # images_array_new = cv2.fastNlMeansDenoisingColored(img, None, 10, 7, 21)
-                        # images_array_new = cv2.bilateralFilter(images_array_new, 9, 75, 75)
+                        if FLAGS.denoise_method == 'filter2D':
+                            kernel_org = [[0, 1, 0], [1, 4, 1], [0, 1, 0]]
+                            kernel = np.array(kernel_org) / np.sum(kernel_org) * 1.0
+                            images_array_new = cv2.filter2D(images_array_new, -1, kernel)
+                        elif FLAGS.denoise_method == 'average':
+                            images_array_new = cv2.blur(images_array_new, (2, 2))
+                        elif FLAGS.denoise_method == 'Gaussian':
+                            images_array_new = cv2.GaussianBlur(images_array_new, (3, 3), 0)
+                        elif FLAGS.denoise_method == 'NLMeans':
+                            img = images_array_new.astype(np.uint8)
+                            images_array_new = cv2.fastNlMeansDenoisingColored(img, None, 10, 7, 21)
+                        elif FLAGS.denoise_method == 'bilateral':
+                            images_array_new = cv2.bilateralFilter(images_array_new, 9, 75, 75)
 
                         max_value = np.max(images_dif)
                         min_value = np.min(images_dif)
