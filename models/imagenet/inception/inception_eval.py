@@ -27,8 +27,8 @@ import time
 import numpy as np
 import tensorflow as tf
 
-from inception import image_processing
-from inception import inception_model as inception
+from models.imagenet.inception import image_processing
+from models.imagenet.inception import inception_model as inception
 
 
 FLAGS = tf.app.flags.FLAGS

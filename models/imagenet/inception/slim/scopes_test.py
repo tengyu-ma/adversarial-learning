@@ -19,7 +19,7 @@ from __future__ import print_function
 
 
 import tensorflow as tf
-from inception.slim import scopes
+from models.imagenet.inception.slim import scopes
 
 
 @scopes.add_arg_scope

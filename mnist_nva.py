@@ -198,6 +198,8 @@ class MnistNvA:
 
         if denoise_name == 'threshold_method':
             x_test_denoised = denoise.threshold_method(x_test_adversarial, thres)
+        elif denoise_name == 'bilateral':
+            x_test_denoised = denoise.bilateral_mnist_method(x_test_adversarial, thres=thres)
         elif denoise_name == 'test_method':
             x_test_denoised = denoise.test_method(x_test_adversarial, thres)
         else:
@@ -316,7 +318,7 @@ class MnistNvA:
 
 
 if __name__ == '__main__':
-    restore = False
+    restore = True
     output_img = False
     epsilon = 0.25
     thres = 0.5
@@ -328,9 +330,9 @@ if __name__ == '__main__':
 
     mnist_nva.nom_test()
     mnist_nva.adv_test('fgsm', epsilon)
-    mnist_nva.denoise_test(epsilon, thres, 'fgsm', 'threshold_method')
-
-    if output_img:
-        mnist_nva.save_nva_images(epsilon, thres, 10, 'fgsm', 'threshold_method')
+    # mnist_nva.denoise_test(epsilon, thres, 'fgsm', 'threshold_method')
+    #
+    # if output_img:
+    #     mnist_nva.save_nva_images(epsilon, thres, 10, 'fgsm', 'threshold_method')
 
     mnist_nva.sess.close()

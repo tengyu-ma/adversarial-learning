@@ -309,14 +309,14 @@ def image_eval(prediciton, image_id):
         score = prediciton[node_id]
         # if node_id == image_id:
         print('%s (score = %.5f)' % (human_string, score))
-            # return True
+        # return True
         # print('wrong! %s (score = %.5f)' % (human_string, score))
-    # return False
+        # return False
 
-    #     f.write('%d\t%s (score = %.5f)\n' % (i, human_string, score))
-    # f.write('\n')
-    # f.close()
-    # print('\n')
+        #     f.write('%d\t%s (score = %.5f)\n' % (i, human_string, score))
+        # f.write('\n')
+        # f.close()
+        # print('\n')
 
 
 def one_hot_label(entry):
@@ -387,12 +387,11 @@ def maybe_download_and_extract():
     tarfile.open(filepath, 'r:gz').extractall(dest_directory)
 
 
-class InceptionModel:
-    def __init__(self, num_top_predictions=5):
-        self.model_dir = os.path.join(util.ROOT_DIR, "data/imagenet/nom")
-        self.num_top_predictions = num_top_predictions
-
-FLAGS = InceptionModel()
+FLAGS = tf.app.flags.FLAGS
+tf.app.flags.DEFINE_string('model_dir', os.path.join(util.ROOT_DIR, "data/imagenet/nom"),
+                           """Model directory.""")
+tf.app.flags.DEFINE_integer('num_top_predictions', 5,
+                            """Number of predictions.""")
 
 
 def main(_):
