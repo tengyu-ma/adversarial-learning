@@ -27,8 +27,8 @@ from __future__ import print_function
 
 import tensorflow as tf
 
-from inception import inception_eval
-from inception.imagenet_data import ImagenetData
+from models.imagenet.inception import inception_eval
+from models.imagenet.inception.imagenet_data import ImagenetData
 
 FLAGS = tf.app.flags.FLAGS
 

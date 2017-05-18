@@ -23,9 +23,9 @@ import tensorflow as tf
 
 from tensorflow.python.ops import control_flow_ops
 
-from inception.slim import ops
-from inception.slim import scopes
-from inception.slim import variables
+from models.imagenet.inception.slim import ops
+from models.imagenet.inception.slim import scopes
+from models.imagenet.inception.slim import variables
 
 
 class ConvTest(tf.test.TestCase):

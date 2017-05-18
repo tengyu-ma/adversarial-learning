@@ -9,7 +9,10 @@ __pycache__/
 
 # Data folder
 ImageNet_data/
+
 images/
 
 # Log files
 log/
+
+data/

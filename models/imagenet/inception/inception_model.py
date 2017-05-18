@@ -28,7 +28,7 @@ import re
 
 import tensorflow as tf
 
-from inception.slim import slim
+from models.imagenet.inception.slim import slim
 
 FLAGS = tf.app.flags.FLAGS
 
