@@ -42,24 +42,12 @@ import time
 import tensorflow as tf
 
 import cifar10
-
-FLAGS = tf.app.flags.FLAGS
-
-tf.app.flags.DEFINE_string('train_dir', '/tmp/cifar10_train',
-                           """Directory where to write event logs """
-                           """and checkpoint.""")
-tf.app.flags.DEFINE_integer('max_steps', 1000000,
-                            """Number of batches to run.""")
-tf.app.flags.DEFINE_boolean('log_device_placement', False,
-                            """Whether to log device placement.""")
-tf.app.flags.DEFINE_integer('log_frequency', 10,
-                            """How often to log results to the console.""")
+from settings import *
 
 
 def train():
     """Train CIFAR-10 for a number of steps."""
     with tf.variable_scope('network1') as scope:
-        tf.set_random_seed(1)
         global_step = tf.contrib.framework.get_or_create_global_step()
 
         # Get images and labels for CIFAR-10.
@@ -114,6 +102,8 @@ def train():
 
 
 def main(argv=None):  # pylint: disable=unused-argument
+    global FLAGS
+    FLAGS.image_size = 32
     cifar10.maybe_download_and_extract()
     if tf.gfile.Exists(FLAGS.train_dir):
         tf.gfile.DeleteRecursively(FLAGS.train_dir)
