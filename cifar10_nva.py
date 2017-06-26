@@ -64,9 +64,9 @@ def evaluate():
     # FLAGS.eval_data_set = 'test_batch_size24_eps%d_noise.bin' % EPS
     # FLAGS.eval_data_set  = 'test_batch_size24_eps%d_noise_after_cae.bin' % EPS
     # FLAGS.eval_data_set = "test_batch_processed_size24.bin"
-    # FLAGS.eval_data_set = 'test_batch_processed_size24_eps%d_org.bin' % EPS
+    FLAGS.eval_data_set = 'test_batch_processed_size24_eps%d_org.bin' % EPS
     # FLAGS.eval_data_set = 'test_batch_processed_size24_eps%d_noise.bin' % EPS
-    FLAGS.eval_data_set  = 'test_batch_processed_size24_eps%d_noise_after_cae.bin' % EPS
+    # FLAGS.eval_data_set  = 'test_batch_processed_size24_eps%d_noise_after_cae.bin' % EPS
     cifar10_eval.evaluate()
 
 

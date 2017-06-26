@@ -99,15 +99,27 @@ def generate_images_with_noise():
         images, labels, images_org = cifar10.inputs(eval_data=FLAGS.eval_data)
         logits = cifar10.inference(images)
 
+        # FGSM
         loss = cifar10.loss(logits, labels)
         nabla_J = tf.gradients(loss, images)  # apply nabla operator to calculate the gradient
         sign_nabla_J = tf.sign(nabla_J)  # calculate the sign of the gradient of cost function
         eta = tf.multiply(sign_nabla_J, EPS)
-        # sign_random = tf.sign(tf.random_normal([24, 24, 3], mean=0, stddev=1))
-        # eta = tf.multiply(sign_random, EPS)  # multiply epsilon the sign of the gradient of cost function
         eta_reshaped = tf.reshape(eta, images_org._shape)
         images_new = tf.add(images_org, eta_reshaped)
         images_org = tf.cast(images_org, tf.float32)
+
+        # Random noise
+        # sign_random = tf.sign(tf.random_normal([24, 24, 3], mean=0, stddev=1))
+        # eta = tf.multiply(sign_random, EPS)  # multiply epsilon the sign of the gradient of cost function
+        # eta_reshaped = tf.reshape(eta, images_org._shape)
+        # images_new = tf.add(images_org, eta_reshaped)
+        # images_org = tf.cast(images_org, tf.float32)
+
+        # Step 1.1
+        # todo
+
+        # Step rnd
+        # todo
 
         # Calculate predictions.
         top_k_op = tf.nn.in_top_k(logits, labels, 1)
