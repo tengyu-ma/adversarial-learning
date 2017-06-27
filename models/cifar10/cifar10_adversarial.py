@@ -141,15 +141,13 @@ def generate_images_with_noise():
         scope.reuse_variables()
 
         images_iter = tf.reshape(images_iter, images._shape)
-        logits1 = cifar10.inference(images_iter)
-        loss1 = cifar10.loss(logits1, labels)
-        nabla_J1 = tf.gradients(loss1, images)
-        sign_nabla_J1 = tf.sign(nabla_J1)
-        eta1 = tf.multiply(sign_nabla_J1, 5)
-        eta_reshaped1 = tf.reshape(eta1, images_org._shape)
-        images_new1 = tf.add(images_org, eta_reshaped1)
-        images_iter1 = tf.image.per_image_standardization(images_new1)
-        scope.reuse_variables()
+        logits = cifar10.inference(images_iter)
+        loss = cifar10.loss(logits, labels)
+        nabla_J = tf.gradients(loss, images_iter)
+        sign_nabla_J = tf.sign(nabla_J)
+        eta = tf.multiply(sign_nabla_J, 5)
+        eta_reshaped = tf.reshape(eta, images_org._shape)
+        images_new = tf.add(images_org, eta_reshaped)
 
         # Calculate predictions.
         top_k_op = tf.nn.in_top_k(logits, labels, 1)
@@ -267,10 +265,20 @@ def show_images_with_noise():
             loss = cifar10.loss(logits, labels)
             nabla_J = tf.gradients(loss, images)  # apply nabla operator to calculate the gradient
             sign_nabla_J = tf.sign(nabla_J)  # calculate the sign of the gradient of cost function
-            eta = tf.multiply(sign_nabla_J, EPS)
+            eta = tf.multiply(sign_nabla_J, 5)
             eta_reshaped = tf.reshape(eta, images_org._shape)
             images_new = tf.add(images_org, eta_reshaped)
             images_org = tf.cast(images_org, tf.float32)
+
+            scope.reuse_variables()
+            images_iter = tf.reshape(images, images._shape)
+            logits = cifar10.inference(images_iter)
+            loss = cifar10.loss(logits, labels)
+            nabla_J = tf.gradients(loss, images_iter)
+            sign_nabla_J = tf.sign(nabla_J)
+            eta = tf.multiply(sign_nabla_J, 5)
+            eta_reshaped = tf.reshape(eta, images_org._shape)
+            images_new = tf.add(images_new, eta_reshaped)
 
             # Calculate predictions.
             top_k_op = tf.nn.in_top_k(logits, labels, 1)
@@ -280,6 +288,7 @@ def show_images_with_noise():
                 cifar10.MOVING_AVERAGE_DECAY)
             variables_to_restore = variable_averages.variables_to_restore()
             saver = tf.train.Saver(variables_to_restore)
+
 
             with tf.Session() as sess:
 
@@ -301,6 +310,7 @@ def show_images_with_noise():
                     step = 0
                     true_count = 0
                     num_iter = 5
+
                     # num_iter = int(math.ceil(FLAGS.num_examples / FLAGS.batch_size))
                     total_sample_count = num_iter * FLAGS.batch_size
                     while step < num_iter and not coord.should_stop():
@@ -325,17 +335,19 @@ def show_images_with_noise():
                         elif FLAGS.denoise_method == 'bilateral':
                             images_array_new = cv2.bilateralFilter(images_array_new, 9, 75, 75)
 
+                        images_array_new = images_array_new.astype('uint8')
+
                         max_value = np.max(images_dif)
                         min_value = np.min(images_dif)
                         try:
-                            assert max_value == 15
-                            assert min_value == -15
+                            assert max_value <= 15
+                            assert min_value >= -15
                         except:
                             raise
 
                         plt.figure(1)
                         plt.subplot(121)
-                        plt.imshow(images_array_org)
+                        plt.imshow(255 - images_array_org)
                         plt.subplot(122)
                         plt.imshow(images_array_new)
                         plt.show()
