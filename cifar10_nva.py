@@ -61,10 +61,10 @@ def evaluate():
     global FLAGS
     FLAGS.image_size = 24
     # FLAGS.eval_data_set = "test_batch_size24.bin"
-    # FLAGS.eval_data_set = 'test_batch_size24_eps%d_noise.bin' % EPS
+    FLAGS.eval_data_set = 'test_batch_size24_eps%d_noise.bin' % EPS
     # FLAGS.eval_data_set  = 'test_batch_size24_eps%d_noise_after_cae.bin' % EPS
     # FLAGS.eval_data_set = "test_batch_processed_size24.bin"
-    FLAGS.eval_data_set = 'test_batch_processed_size24_eps%d_org.bin' % EPS
+    # FLAGS.eval_data_set = 'test_batch_processed_size24_eps%d_org.bin' % EPS
     # FLAGS.eval_data_set = 'test_batch_processed_size24_eps%d_noise.bin' % EPS
     # FLAGS.eval_data_set  = 'test_batch_processed_size24_eps%d_noise_after_cae.bin' % EPS
     cifar10_eval.evaluate()
@@ -85,13 +85,12 @@ def process_image_with_autoencoder():
     autoencoder_run.process_image_with_autoenccoder()
     generate_bin_from_npy.main()
 
-
 if __name__ == '__main__':
-    FLAGS.use_processed_data = True  # to set
+    FLAGS.use_processed_data = False  # to set
     FLAGS.denoise_method = "None"
     # train_with_original_data()
     # generate_images_size24()
-    # generate_images_with_noise()
+    generate_images_with_noise()
     # process_image_with_autoencoder()
     # show_images_with_noise()
-    evaluate()
+    # evaluate()

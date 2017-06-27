@@ -97,16 +97,16 @@ def generate_images_with_noise():
         FLAGS.image_size = 24
         FLAGS.batch_size = 1
         images, labels, images_org = cifar10.inputs(eval_data=FLAGS.eval_data)
-        logits = cifar10.inference(images)
 
         # FGSM
-        loss = cifar10.loss(logits, labels)
-        nabla_J = tf.gradients(loss, images)  # apply nabla operator to calculate the gradient
-        sign_nabla_J = tf.sign(nabla_J)  # calculate the sign of the gradient of cost function
-        eta = tf.multiply(sign_nabla_J, EPS)
-        eta_reshaped = tf.reshape(eta, images_org._shape)
-        images_new = tf.add(images_org, eta_reshaped)
-        images_org = tf.cast(images_org, tf.float32)
+        # logits = cifar10.inference(images)
+        # loss = cifar10.loss(logits, labels)
+        # nabla_J = tf.gradients(loss, images)  # apply nabla operator to calculate the gradient
+        # sign_nabla_J = tf.sign(nabla_J)  # calculate the sign of the gradient of cost function
+        # eta = tf.multiply(sign_nabla_J, EPS)
+        # eta_reshaped = tf.reshape(eta, images_org._shape)
+        # images_new = tf.add(images_org, eta_reshaped)
+        # images_org = tf.cast(images_org, tf.float32)
 
         # Random noise
         # sign_random = tf.sign(tf.random_normal([24, 24, 3], mean=0, stddev=1))
@@ -116,10 +116,40 @@ def generate_images_with_noise():
         # images_org = tf.cast(images_org, tf.float32)
 
         # Step 1.1
-        # todo
+        # logits = cifar10.inference(images)
+        # rlogits = tf.reverse(logits,[1])
+        # rloss = cifar10.loss(rlogits, labels)
+        # nabla_J = tf.gradients(rloss, images)  # apply nabla operator to calculate the gradient
+        # sign_nabla_J = tf.sign(nabla_J)  # calculate the sign of the gradient of cost function
+        # eta = tf.multiply(sign_nabla_J, EPS)
+        # eta_reshaped = tf.reshape(eta, images_org._shape)
+        # images_new = tf.subtract(images_org, eta_reshaped)
+        # images_org = tf.cast(images_org, tf.float32)
 
-        # Step rnd
-        # todo
+        # Basic iter
+        images_org = tf.cast(images_org, tf.float32)
+        images_iter = images
+
+        logits = cifar10.inference(images_iter)
+        loss = cifar10.loss(logits, labels)
+        nabla_J = tf.gradients(loss, images)
+        sign_nabla_J = tf.sign(nabla_J)
+        eta = tf.multiply(sign_nabla_J, 5)
+        eta_reshaped = tf.reshape(eta, images_org._shape)
+        images_new = tf.add(images_org, eta_reshaped)
+        images_iter = tf.image.per_image_standardization(images_new)
+        scope.reuse_variables()
+
+        images_iter = tf.reshape(images_iter, images._shape)
+        logits1 = cifar10.inference(images_iter)
+        loss1 = cifar10.loss(logits1, labels)
+        nabla_J1 = tf.gradients(loss1, images)
+        sign_nabla_J1 = tf.sign(nabla_J1)
+        eta1 = tf.multiply(sign_nabla_J1, 5)
+        eta_reshaped1 = tf.reshape(eta1, images_org._shape)
+        images_new1 = tf.add(images_org, eta_reshaped1)
+        images_iter1 = tf.image.per_image_standardization(images_new1)
+        scope.reuse_variables()
 
         # Calculate predictions.
         top_k_op = tf.nn.in_top_k(logits, labels, 1)
@@ -324,5 +354,5 @@ def show_images_with_noise():
 
 if __name__ == '__main__':
     pass
-    # generate_images_size24()
+    # generate_images_with_noise()
     # evaluate()
