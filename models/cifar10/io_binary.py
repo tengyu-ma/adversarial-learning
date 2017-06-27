@@ -28,6 +28,50 @@ def generate_pdf_files():
             plt.show()
 
 
+def compare_images_from_bin():
+    IMAGE_SIZE = 24
+    NUM_TO_GENERATE = 5
+    ONE_LENGTH = 3 * IMAGE_SIZE * IMAGE_SIZE + 1
+    file_name_org = os.path.join('/tmp/cifar10_data', 'cifar-10-batches-bin/test_batch_eps%d_org.bin' % EPS)
+    file_name_noise = os.path.join('/tmp/cifar10_data', 'cifar-10-batches-bin/test_batch_eps%d_noise.bin' % EPS)
+    f_org = open(file_name_org, 'rb')
+    f_noise = open(file_name_noise, 'rb')
+    file_org = f_org.read()
+    file_noise = f_noise.read()
+    file_org_list = list(file_org)
+    file_noise_list = list(file_noise)
+    total_num = int(len(file_org_list) / ONE_LENGTH)
+    category = np.zeros(10)
+    for i in range(NUM_TO_GENERATE):
+        label_org = file_org_list[ONE_LENGTH * i]
+        label_noise = file_noise_list[ONE_LENGTH * i]
+        assert label_org == label_noise
+        category[label_org] += 1
+        # print(LABEL[label_org])
+
+        # image_org = file_org_list[ONE_LENGTH * i + 1:ONE_LENGTH * (i + 1)]
+        # image_org = np.reshape(image_org, (3, IMAGE_SIZE, IMAGE_SIZE))
+        # image_org = np.transpose(image_org, (1, 2, 0)).astype('uint8')
+        # image_noise = file_noise_list[ONE_LENGTH * i + 1:ONE_LENGTH * (i + 1)]
+        # image_noise = np.reshape(image_noise, (3, IMAGE_SIZE, IMAGE_SIZE))
+        # image_noise = np.transpose(image_noise, (1, 2, 0)).astype('uint8')
+        #
+        # fig = plt.figure()
+        # plt.subplot(211)
+        # plt.imshow(image_org)
+        # plt.subplot(212)
+        # plt.imshow(image_noise)
+        # plt.show()
+
+    print(category)
+    f_org.close()
+    f_noise.close()
+
+
+def denoise_from_bin():
+    pass
+
+
 def processing_images_without_noise():
     IMAGE_SIZE = 32
     ONE_LENGTH = 3 * IMAGE_SIZE * IMAGE_SIZE + 1
@@ -74,4 +118,5 @@ def processing_images_without_noise():
                 f.write(file_new)
 
 if __name__ == '__main__':
-    processing_images_without_noise()
+    # processing_images_without_noise()
+    compare_images_from_bin()

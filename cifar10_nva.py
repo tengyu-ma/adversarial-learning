@@ -61,7 +61,7 @@ def evaluate():
     global FLAGS
     FLAGS.image_size = 24
     # FLAGS.eval_data_set = "test_batch_size24.bin"
-    FLAGS.eval_data_set = 'test_batch_size24_eps%d_noise.bin' % EPS
+    FLAGS.eval_data_set = 'test_batch_size24_eps%d_org.bin' % EPS
     # FLAGS.eval_data_set  = 'test_batch_size24_eps%d_noise_after_cae.bin' % EPS
     # FLAGS.eval_data_set = "test_batch_processed_size24.bin"
     # FLAGS.eval_data_set = 'test_batch_processed_size24_eps%d_org.bin' % EPS
@@ -87,10 +87,11 @@ def process_image_with_autoencoder():
 
 if __name__ == '__main__':
     FLAGS.use_processed_data = False  # to set
-    FLAGS.denoise_method = "bilateral"
+    # FLAGS.denoise_method = "bilateral"
+    FLAGS.denoise_method = "none"
     # train_with_original_data()
     # generate_images_size24()
     # process_image_with_autoencoder()
     # show_images_with_noise()
-    generate_images_with_noise()
-    # evaluate()
+    # generate_images_with_noise()
+    evaluate()

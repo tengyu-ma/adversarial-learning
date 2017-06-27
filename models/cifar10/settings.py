@@ -2,6 +2,7 @@ import tensorflow as tf
 
 EPS = int(0.06 * 255)
 
+LABEL = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
 FLAGS = tf.app.flags.FLAGS
 tf.app.flags.DEFINE_string('autoencoder_test_set', 'test_batch_size24.bin',
                            """Data set for autoencoder to get image prediction""")

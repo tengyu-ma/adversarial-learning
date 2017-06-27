@@ -128,10 +128,11 @@ def generate_images_with_noise():
 
         # Basic iter
         alpha = 1
-        steps = 4
-        EPS = alpha
+        steps = 8
+        EPS = alpha * steps
         images_iter = images
         images_org = tf.cast(images_org, tf.float32)
+        images_new = images_org
 
         for i in range(steps):
             logits = cifar10.inference(images_iter)
@@ -140,7 +141,7 @@ def generate_images_with_noise():
             sign_nabla_J = tf.sign(nabla_J)
             eta = tf.multiply(sign_nabla_J, alpha)
             eta_reshaped = tf.reshape(eta, images_org._shape)
-            images_new = tf.add(images_org, eta_reshaped)
+            images_new = tf.add(images_new, eta_reshaped)
             images_iter = tf.image.per_image_standardization(images_new)
             images_iter = tf.reshape(images_iter, images._shape)
             scope.reuse_variables()
