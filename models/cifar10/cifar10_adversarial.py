@@ -127,9 +127,9 @@ def generate_images_with_noise():
         # images_org = tf.cast(images_org, tf.float32)
 
         # Basic iter
-        alpha = 8
-        steps = 1
-        EPS = alpha * steps
+        alpha = 1
+        steps = 4
+        EPS = alpha
         images_iter = images
         images_org = tf.cast(images_org, tf.float32)
 
@@ -189,6 +189,7 @@ def generate_images_with_noise():
                     data_bytes_org = bytes(data_list_org)
 
                     images_array_new = (images_array_new - 127.5) * 127.5 / (127.5 + EPS) + 127.5
+                    # images_array_new = (images_array_new - 128) * 128 / (128 + EPS) + 128
 
                     if FLAGS.denoise_method == 'filter2D':
                         kernel_org = [[0, 1, 0], [1, 4, 1], [0, 1, 0]]
@@ -207,9 +208,11 @@ def generate_images_with_noise():
                     max_value = np.max(images_array_new)
                     min_value = np.min(images_array_new)
                     try:
-                        assert max_value <= 255
+                        assert max_value < 256
                         assert min_value >= 0
                     except:
+                        print(max_value)
+                        print(min_value)
                         raise
 
                     image_matrix_new = np.array([images_array_new[:, :, 0], images_array_new[:, :, 1],
