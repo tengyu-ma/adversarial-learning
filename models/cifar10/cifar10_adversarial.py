@@ -127,8 +127,9 @@ def generate_images_with_noise():
         # images_org = tf.cast(images_org, tf.float32)
 
         # Basic iter
-        alpha = 1
-        steps = 5
+        alpha = 8
+        steps = 1
+        EPS = alpha * steps
         images_iter = images
         images_org = tf.cast(images_org, tf.float32)
 
@@ -187,7 +188,7 @@ def generate_images_with_noise():
                     data_list_org = list(data_list_org)
                     data_bytes_org = bytes(data_list_org)
 
-                    images_array_new = (images_array_new - 128) * 128 / (128 + EPS) + 128
+                    images_array_new = (images_array_new - 127.5) * 127.5 / (127.5 + EPS) + 127.5
 
                     if FLAGS.denoise_method == 'filter2D':
                         kernel_org = [[0, 1, 0], [1, 4, 1], [0, 1, 0]]
@@ -203,18 +204,20 @@ def generate_images_with_noise():
                     elif FLAGS.denoise_method == 'bilateral':
                         images_array_new = cv2.bilateralFilter(images_array_new, 9, 75, 75)
 
-                    image_matrix_new = np.array([images_array_new[:, :, 0], images_array_new[:, :, 1],
-                                                 images_array_new[:, :, 2]])
-                    image_list_new = np.array(image_matrix_new.flatten())
-                    image_list_new = list(image_list_new.astype('uint8'))
-                    # image_list_new = (image_list_new - 128) * 128 / (128 + EPS) + 128
-                    max_value = np.max(image_list_new)
-                    min_value = np.min(image_list_new)
+                    max_value = np.max(images_array_new)
+                    min_value = np.min(images_array_new)
                     try:
                         assert max_value <= 255
                         assert min_value >= 0
                     except:
                         raise
+
+                    image_matrix_new = np.array([images_array_new[:, :, 0], images_array_new[:, :, 1],
+                                                 images_array_new[:, :, 2]])
+                    image_list_new = np.array(image_matrix_new.flatten())
+                    # image_list_new = (image_list_new - 128) * 128 / (128 + EPS) + 128
+                    image_list_new = list(image_list_new.astype('uint8'))
+
                     label_list_new = list(map(int, list(labels_array)))
                     data_list_new = label_list_new + image_list_new
                     data_bytes_new = bytes(data_list_new)
