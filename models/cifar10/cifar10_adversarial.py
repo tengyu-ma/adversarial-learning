@@ -127,27 +127,22 @@ def generate_images_with_noise():
         # images_org = tf.cast(images_org, tf.float32)
 
         # Basic iter
-        images_org = tf.cast(images_org, tf.float32)
+        alpha = 1
+        steps = 5
         images_iter = images
+        images_org = tf.cast(images_org, tf.float32)
 
-        logits = cifar10.inference(images_iter)
-        loss = cifar10.loss(logits, labels)
-        nabla_J = tf.gradients(loss, images)
-        sign_nabla_J = tf.sign(nabla_J)
-        eta = tf.multiply(sign_nabla_J, 5)
-        eta_reshaped = tf.reshape(eta, images_org._shape)
-        images_new = tf.add(images_org, eta_reshaped)
-        images_iter = tf.image.per_image_standardization(images_new)
-        scope.reuse_variables()
-
-        images_iter = tf.reshape(images_iter, images._shape)
-        logits = cifar10.inference(images_iter)
-        loss = cifar10.loss(logits, labels)
-        nabla_J = tf.gradients(loss, images_iter)
-        sign_nabla_J = tf.sign(nabla_J)
-        eta = tf.multiply(sign_nabla_J, 5)
-        eta_reshaped = tf.reshape(eta, images_org._shape)
-        images_new = tf.add(images_org, eta_reshaped)
+        for i in range(steps):
+            logits = cifar10.inference(images_iter)
+            loss = cifar10.loss(logits, labels)
+            nabla_J = tf.gradients(loss, images_iter)
+            sign_nabla_J = tf.sign(nabla_J)
+            eta = tf.multiply(sign_nabla_J, alpha)
+            eta_reshaped = tf.reshape(eta, images_org._shape)
+            images_new = tf.add(images_org, eta_reshaped)
+            images_iter = tf.image.per_image_standardization(images_new)
+            images_iter = tf.reshape(images_iter, images._shape)
+            scope.reuse_variables()
 
         # Calculate predictions.
         top_k_op = tf.nn.in_top_k(logits, labels, 1)
