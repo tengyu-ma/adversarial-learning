@@ -32,8 +32,8 @@ def compare_images_from_bin():
     IMAGE_SIZE = 24
     NUM_TO_GENERATE = 5
     ONE_LENGTH = 3 * IMAGE_SIZE * IMAGE_SIZE + 1
-    file_name_org = os.path.join('/tmp/cifar10_data', 'cifar-10-batches-bin/test_batch_eps%d_org.bin' % EPS)
-    file_name_noise = os.path.join('/tmp/cifar10_data', 'cifar-10-batches-bin/test_batch_eps%d_noise.bin' % EPS)
+    file_name_org = os.path.join('/tmp/cifar10_data', 'cifar-10-batches-bin/test_batch_size24_eps%d_org.bin' % EPS)
+    file_name_noise = os.path.join('/tmp/cifar10_data', 'cifar-10-batches-bin/test_batch_size24_eps%d_noise.bin' % EPS)
     f_org = open(file_name_org, 'rb')
     f_noise = open(file_name_noise, 'rb')
     file_org = f_org.read()
@@ -47,21 +47,21 @@ def compare_images_from_bin():
         label_noise = file_noise_list[ONE_LENGTH * i]
         assert label_org == label_noise
         category[label_org] += 1
-        # print(LABEL[label_org])
+        print(LABEL[label_org])
 
-        # image_org = file_org_list[ONE_LENGTH * i + 1:ONE_LENGTH * (i + 1)]
-        # image_org = np.reshape(image_org, (3, IMAGE_SIZE, IMAGE_SIZE))
-        # image_org = np.transpose(image_org, (1, 2, 0)).astype('uint8')
-        # image_noise = file_noise_list[ONE_LENGTH * i + 1:ONE_LENGTH * (i + 1)]
-        # image_noise = np.reshape(image_noise, (3, IMAGE_SIZE, IMAGE_SIZE))
-        # image_noise = np.transpose(image_noise, (1, 2, 0)).astype('uint8')
-        #
-        # fig = plt.figure()
-        # plt.subplot(211)
-        # plt.imshow(image_org)
-        # plt.subplot(212)
-        # plt.imshow(image_noise)
-        # plt.show()
+        image_org = file_org_list[ONE_LENGTH * i + 1:ONE_LENGTH * (i + 1)]
+        image_org = np.reshape(image_org, (3, IMAGE_SIZE, IMAGE_SIZE))
+        image_org = np.transpose(image_org, (1, 2, 0)).astype('uint8')
+        image_noise = file_noise_list[ONE_LENGTH * i + 1:ONE_LENGTH * (i + 1)]
+        image_noise = np.reshape(image_noise, (3, IMAGE_SIZE, IMAGE_SIZE))
+        image_noise = np.transpose(image_noise, (1, 2, 0)).astype('uint8')
+
+        fig = plt.figure()
+        plt.subplot(211)
+        plt.imshow(image_org)
+        plt.subplot(212)
+        plt.imshow(image_noise)
+        plt.show()
 
     print(category)
     f_org.close()
@@ -69,7 +69,50 @@ def compare_images_from_bin():
 
 
 def denoise_from_bin():
-    pass
+    IMAGE_SIZE = 24
+    ONE_LENGTH = 3 * IMAGE_SIZE * IMAGE_SIZE + 1
+    prefix = 'test_batch_size24_eps%d' % EPS
+    file_name_noise = os.path.join('/tmp/cifar10_data/cifar-10-batches-bin', prefix+'_noise.bin')
+    f_noise = open(file_name_noise, 'rb')
+    file_noise = f_noise.read()
+    file_noise_list = list(file_noise)
+    total_num = int(len(file_noise_list) / ONE_LENGTH)
+    for i in range(total_num):
+        label_noise = file_noise_list[ONE_LENGTH * i]
+        image_noise = file_noise_list[ONE_LENGTH * i + 1:ONE_LENGTH * (i + 1)]
+        image_noise = np.reshape(image_noise, (3, IMAGE_SIZE, IMAGE_SIZE))
+        image_noise = np.transpose(image_noise, (1, 2, 0)).astype('uint8')
+
+        image_denoised = cv2.bilateralFilter(image_noise, 9, 75, 75)
+
+        # fig = plt.figure()
+        # plt.subplot(211)
+        # plt.imshow(image_noise)
+        # plt.subplot(212)
+        # plt.imshow(image_denoised)
+        # plt.show()
+
+        image_matrix_denoised = np.array([image_denoised[:, :, 0], image_denoised[:, :, 1],
+                                     image_denoised[:, :, 2]])
+        image_list_denoised= np.array(image_matrix_denoised.flatten())
+        image_list_denoised = list(image_list_denoised.astype('uint8'))
+
+        label_list_denoised = list([label_noise])
+        data_list_denoised = label_list_denoised + image_list_denoised
+        data_bytes_denoised = bytes(data_list_denoised)
+
+        if i == 0:
+            file_denoised = data_bytes_denoised
+        else:
+            file_denoised += data_bytes_denoised
+
+        if i % 200 == 0:
+            print("Step: %d" % i)
+
+    file_name_denoised = os.path.join('/tmp/cifar10_data/cifar-10-batches-bin', prefix+'_denoised.bin')
+    f_denoised = open(file_name_denoised, 'wb')
+    f_denoised.write(file_denoised)
+    f_denoised.close()
 
 
 def processing_images_without_noise():
@@ -119,4 +162,5 @@ def processing_images_without_noise():
 
 if __name__ == '__main__':
     # processing_images_without_noise()
-    compare_images_from_bin()
+    # compare_images_from_bin()
+    denoise_from_bin()
