@@ -51,17 +51,20 @@ def generate_images_with_noise(i=0):
         filename += '_processed'
     filename += '_size24'
     FLAGS.eval_data_set = filename + '.bin'
-    filename = filename + '_eps%d' % EPS
+    filename = filename + '_eps%d' % FLAGS.eps
     FLAGS.generate_data_set = filename
     cifar10_adversarial.generate_images_with_noise()
     FLAGS.get_single_label = False
+    io_binary.denoise_from_bin()
 
 
 def evaluate():
     global FLAGS
     FLAGS.image_size = 24
-    # FLAGS.eval_data_set = 'test_batch_size24_eps%d_noise.bin' % EPS
-    FLAGS.eval_data_set = 'test_batch_size24_eps%d_denoised.bin' % EPS
+    # FLAGS.eval_data_set = 'test_batch_size24_eps%d_org.bin' % FLAGS.eps
+    # FLAGS.eval_data_set = 'test_batch_size24_eps%d_noise.bin' % FLAGS.eps
+    FLAGS.eval_data_set = 'test_batch_size24_eps%d_denoised.bin' % FLAGS.eps
+    # FLAGS.eval_data_set = 'test_batch_size24.bin'
     cifar10_eval.evaluate()
 
 
@@ -74,19 +77,21 @@ def show_images_with_noise():
 
 def process_image_with_autoencoder():
     global FLAGS
-    FLAGS.autoencoder_test_set = 'test_batch_size24_eps%d_noise.bin' % EPS
+    FLAGS.autoencoder_test_set = 'test_batch_size24_eps%d_noise.bin' % FLAGS.eps
     if FLAGS.use_processed_data:
-        FLAGS.autoencoder_test_set = 'test_batch_processed_size24_eps%d_noise.bin' % EPS
+        FLAGS.autoencoder_test_set = 'test_batch_processed_size24_eps%d_noise.bin' % FLAGS.eps
     autoencoder_run.process_image_with_autoenccoder()
     generate_bin_from_npy.main()
 
 if __name__ == '__main__':
     FLAGS.use_processed_data = False  # to set
-    # FLAGS.denoise_method = "bilateral"
     FLAGS.denoise_method = "none"
     # train_with_original_data()
     # generate_images_size24()
     # process_image_with_autoencoder()
     # show_images_with_noise()
-    # generate_images_with_noise()
-    evaluate()
+    FLAGS.steps = 2
+    FLAGS.alpha = 4
+    FLAGS.eps = FLAGS.alpha * FLAGS.steps
+    generate_images_with_noise()
+    # evaluate()

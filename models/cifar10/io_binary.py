@@ -7,9 +7,9 @@ from settings import *
 
 def generate_pdf_files():
     IMAGE_SIZE = 24
-    NUM_TO_GENERATE = 5
+    NUM_TO_GENERATE = 2
     ONE_LENGTH = 3 * IMAGE_SIZE * IMAGE_SIZE + 1
-    file_to_read = os.path.join(FLAGS.data_dir, 'cifar-10-batches-bin/test_batch_eps%d_org.bin' % EPS)
+    file_to_read = os.path.join(FLAGS.data_dir, 'cifar-10-batches-bin/test_batch_eps%d_org.bin' % FLAGS.eps)
     with open(file_to_read, 'rb') as f:
         file = f.read()
         file_list = list(file)
@@ -30,10 +30,10 @@ def generate_pdf_files():
 
 def compare_images_from_bin():
     IMAGE_SIZE = 24
-    NUM_TO_GENERATE = 5
+    NUM_TO_GENERATE = 2
     ONE_LENGTH = 3 * IMAGE_SIZE * IMAGE_SIZE + 1
-    file_name_org = os.path.join('/tmp/cifar10_data', 'cifar-10-batches-bin/test_batch_size24_eps%d_org.bin' % EPS)
-    file_name_noise = os.path.join('/tmp/cifar10_data', 'cifar-10-batches-bin/test_batch_size24_eps%d_noise.bin' % EPS)
+    file_name_org = os.path.join('/tmp/cifar10_data', 'cifar-10-batches-bin/test_batch_size24_eps%d_org.bin' % FLAGS.eps)
+    file_name_noise = os.path.join('/tmp/cifar10_data', 'cifar-10-batches-bin/test_batch_size24_eps%d_noise.bin' % FLAGS.eps)
     f_org = open(file_name_org, 'rb')
     f_noise = open(file_name_noise, 'rb')
     file_org = f_org.read()
@@ -71,7 +71,7 @@ def compare_images_from_bin():
 def denoise_from_bin():
     IMAGE_SIZE = 24
     ONE_LENGTH = 3 * IMAGE_SIZE * IMAGE_SIZE + 1
-    prefix = 'test_batch_size24_eps%d' % EPS
+    prefix = 'test_batch_size24_eps%d' % FLAGS.eps
     file_name_noise = os.path.join('/tmp/cifar10_data/cifar-10-batches-bin', prefix+'_noise.bin')
     f_noise = open(file_name_noise, 'rb')
     file_noise = f_noise.read()

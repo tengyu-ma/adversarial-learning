@@ -13,6 +13,9 @@ tf.app.flags.DEFINE_string('generate_data_set', 'test_batch_size24.bin', """Name
 tf.app.flags.DEFINE_boolean('get_single_label', False, """A strange but necessary method to get label""")
 tf.app.flags.DEFINE_integer('image_size', 32, """The size of cifar images used.""")
 tf.app.flags.DEFINE_boolean('use_processed_data', False, """Use processed data or not.""")
+tf.app.flags.DEFINE_integer('alpha', 1, """The value each pixel changes in one round""")
+tf.app.flags.DEFINE_integer('steps', 8, """The steps pixel need to change""")
+tf.app.flags.DEFINE_integer('eps', 8, """The total value each pixel changes""")
 # tf.app.flags.DEFINE_integer('batch_size', 128, """Number of images to process in a batch.""")
 # tf.app.flags.DEFINE_string('checkpoint_dir', '/tmp/cifar10_train',
 #                            """Directory where to read model checkpoints.""")
