@@ -156,6 +156,69 @@ def fgsm_imagenet_batch(sess, x_adv_tensor, eta, J, x, y_, rn_x, image_data, ima
     return x_adv, noise
 
 
+def iter_mnist(J, x, y_, x_test, y_test, sess, keep_prob, epsilon=0.1):
+    """
+    A fast gradient sign method to generate adversarial example
+
+    Parameters
+    ----------
+    J :
+        cost function
+    x :
+        test data placeholder
+    y_ :
+        true y_ label placeholder
+    x_test :
+        test data
+    y_test :
+        test label
+    sess :
+        the tensorflow session
+    keep_prob :
+        dropout probability
+    epsilon :
+        noise rate
+
+    Returns
+    -------
+    x_test_adversarial :
+        training data adding fast gradient sign noise; x_adversarial = x + sign(▽_xJ(theta,x,y))
+    noise :
+        the noise added to the normal data; noise = sign(▽_xJ(theta,x,y))
+    """
+    steps = int(epsilon/0.004)
+
+    x_iter = x
+    for i in range(2):
+        nabla_J = tf.gradients(J, x)  # apply nabla operator to calculate the gradient
+        sign_nabla_J = tf.sign(nabla_J)  # calculate the sign of the gradient of cost function
+        eta = tf.multiply(sign_nabla_J, 0.004)  # multiply epsilon the sign of the gradient of cost function
+        eta_flatten = tf.reshape(eta, [-1, 784])
+        x_iter = tf.add(x_iter, eta_flatten)
+
+    x_test_adversarial = np.array([])
+    noise = np.array([])
+
+    test_size = x_test.shape[0]
+    test_batch = 1000
+    test_loop = test_size // test_batch
+    for i in range(test_loop):
+        x_temp = x_test[i * test_batch:(i + 1) * test_batch]
+        y_temp = y_test[i * test_batch:(i + 1) * test_batch]
+        eta_result = sess.run(eta_flatten, feed_dict={x: x_temp, y_: y_temp, keep_prob: 1.0})
+        # add noise to test data
+        temp = sess.run(tf.add(x_temp, eta_result), feed_dict={x: x_temp, y_: y_temp, keep_prob: 1.0})
+        # temp = sess.run(tf.subtract(x_temp, eta_result), feed_dict={x: x_temp, y_: y_temp, keep_prob: 1.0})
+        if not x_test_adversarial.size:
+            x_test_adversarial = temp
+            noise = eta_result
+        else:
+            x_test_adversarial = np.vstack((x_test_adversarial, temp))
+            noise = np.vstack((noise, eta_result))
+
+    return x_test_adversarial, noise
+
+
 def random_imagenet_batch(J, x, y_, rn_x, image_data, image_label, epsilon=2):
     """
     A random sign method to generate adversarial example
