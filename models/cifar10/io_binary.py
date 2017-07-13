@@ -7,25 +7,58 @@ from settings import *
 
 def generate_pdf_files():
     IMAGE_SIZE = 24
-    NUM_TO_GENERATE = 2
+    NUM_TO_GENERATE = 1
     ONE_LENGTH = 3 * IMAGE_SIZE * IMAGE_SIZE + 1
-    file_to_read = os.path.join(FLAGS.data_dir, 'cifar-10-batches-bin/test_batch_eps%d_org.bin' % FLAGS.eps)
-    with open(file_to_read, 'rb') as f:
-        file = f.read()
-        file_list = list(file)
-        for i in range(NUM_TO_GENERATE):
-            label = file_list[ONE_LENGTH * i]
-            image = file_list[ONE_LENGTH * i + 1:ONE_LENGTH * (i + 1)]
-            image = np.reshape(image, (3, IMAGE_SIZE, IMAGE_SIZE))
-            image = np.transpose(image, (1, 2, 0)).astype('uint8')
-            file_name = 'org_' + str(i) + '.pdf'
 
-            fig = plt.figure()
-            ax = fig.add_axes((0, 0, 1, 1))
-            ax.set_axis_off()
-            ax.imshow(image)
-            # fig.savefig(file_name)
-            plt.show()
+    file_name_org = os.path.join('/tmp/cifar10_data', 'cifar-10-batches-bin/test_batch_size24_eps%d_org.bin' % FLAGS.eps)
+    f_org = open(file_name_org, 'rb')
+    file_org = f_org.read()
+    file_org_list = list(file_org)
+    tmp = file_name_org.split('.')
+    tmp[1] = 'pdf'
+    file_name_org = '.'.join(tmp)
+    # print(file_name_org)
+
+    file_name_noise = os.path.join('/tmp/cifar10_data', 'cifar-10-batches-bin/test_batch_size24_eps%d_noise.bin' % FLAGS.eps)
+    f_noise = open(file_name_noise, 'rb')
+    file_noise = f_noise.read()
+    file_noise_list = list(file_noise)
+
+    file_name_denoised = os.path.join('/tmp/cifar10_data',
+                                   'cifar-10-batches-bin/test_batch_size24_eps%d_denoised.bin' % FLAGS.eps)
+    f_denoised = open(file_name_denoised, 'rb')
+    file_denoised = f_denoised.read()
+    file_denoised_list = list(file_denoised)
+
+    for i in range(13,16):
+        label_org = file_org_list[ONE_LENGTH * i]
+        label_noise = file_noise_list[ONE_LENGTH * i]
+        label_denoised = file_denoised_list[ONE_LENGTH * i]
+        assert label_org == label_noise
+        assert label_org == label_denoised
+        print(LABEL[label_org])
+
+        image_org = file_org_list[ONE_LENGTH * i + 1:ONE_LENGTH * (i + 1)]
+        image_org = np.reshape(image_org, (3, IMAGE_SIZE, IMAGE_SIZE))
+        image_org = np.transpose(image_org, (1, 2, 0)).astype('uint8')
+        image_noise = file_noise_list[ONE_LENGTH * i + 1:ONE_LENGTH * (i + 1)]
+        image_noise = np.reshape(image_noise, (3, IMAGE_SIZE, IMAGE_SIZE))
+        image_noise = np.transpose(image_noise, (1, 2, 0)).astype('uint8')
+        image_denoised = file_denoised_list[ONE_LENGTH * i + 1:ONE_LENGTH * (i + 1)]
+        image_denoised = np.reshape(image_denoised, (3, IMAGE_SIZE, IMAGE_SIZE))
+        image_denoised = np.transpose(image_denoised, (1, 2, 0)).astype('uint8')
+
+        fig = plt.figure()
+        plt.subplot(131)
+        plt.imshow(image_org)
+        plt.subplot(132)
+        plt.imshow(image_noise)
+        plt.subplot(133)
+        plt.imshow(image_denoised)
+        plt.show()
+
+    f_org.close()
+    f_noise.close()
 
 
 def compare_images_from_bin():
@@ -161,6 +194,7 @@ def processing_images_without_noise():
                 f.write(file_new)
 
 if __name__ == '__main__':
+    generate_pdf_files()
     # processing_images_without_noise()
     # compare_images_from_bin()
-    denoise_from_bin()
+    # denoise_from_bin()

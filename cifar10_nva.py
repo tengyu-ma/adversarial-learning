@@ -40,7 +40,7 @@ def generate_images_size24(i=0):
 
 def generate_images_with_noise(i=0):
     global FLAGS
-    FLAGS.image_size = 24
+    FLAGS.image_size = 32
     FLAGS.get_single_label = True
     if i == 0:
         FLAGS.eval_data_set = "test_batch.bin"
@@ -49,7 +49,7 @@ def generate_images_with_noise(i=0):
     filename = FLAGS.eval_data_set.split('.')[0]
     if FLAGS.use_processed_data:
         filename += '_processed'
-    filename += '_size24'
+    # filename += '_size24'
     FLAGS.eval_data_set = filename + '.bin'
     filename = filename + '_eps%d' % FLAGS.eps
     FLAGS.generate_data_set = filename
@@ -60,17 +60,17 @@ def generate_images_with_noise(i=0):
 
 def evaluate():
     global FLAGS
-    FLAGS.image_size = 24
-    # FLAGS.eval_data_set = 'test_batch_size24_eps%d_org.bin' % FLAGS.eps
+    FLAGS.image_size = 32
+    FLAGS.eval_data_set = 'test_batch.bin'
     # FLAGS.eval_data_set = 'test_batch_size24_eps%d_noise.bin' % FLAGS.eps
-    FLAGS.eval_data_set = 'test_batch_size24_eps%d_denoised.bin' % FLAGS.eps
+    # FLAGS.eval_data_set = 'test_batch_size24_eps%d_denoised.bin' % FLAGS.eps
     # FLAGS.eval_data_set = 'test_batch_size24.bin'
     cifar10_eval.evaluate()
 
 
 def show_images_with_noise():
     global FLAGS
-    FLAGS.image_size = 24
+    FLAGS.image_size = 32
     FLAGS.eval_data_set = "test_batch_size24.bin"
     cifar10_adversarial.show_images_with_noise()
 
@@ -90,8 +90,8 @@ if __name__ == '__main__':
     # generate_images_size24()
     # process_image_with_autoencoder()
     # show_images_with_noise()
-    FLAGS.steps = 2
-    FLAGS.alpha = 4
-    FLAGS.eps = FLAGS.alpha * FLAGS.steps
+    # FLAGS.steps = 8
+    # FLAGS.alpha = 1
+    # FLAGS.eps = FLAGS.alpha * FLAGS.steps
     generate_images_with_noise()
     # evaluate()

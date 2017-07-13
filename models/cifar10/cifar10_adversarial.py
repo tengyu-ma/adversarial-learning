@@ -94,7 +94,7 @@ def generate_images_with_noise():
     with tf.variable_scope('network1') as scope:
         tf.set_random_seed(1)
         batch_size = FLAGS.batch_size
-        FLAGS.image_size = 24
+        FLAGS.image_size = 32
         FLAGS.batch_size = 1
         images, labels, images_org = cifar10.inputs(eval_data=FLAGS.eval_data)
 
