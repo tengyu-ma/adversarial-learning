@@ -61,17 +61,16 @@ def generate_images_with_noise(i=0):
 def evaluate():
     global FLAGS
     FLAGS.image_size = 32
-    FLAGS.eval_data_set = 'test_batch.bin'
-    # FLAGS.eval_data_set = 'test_batch_size24_eps%d_noise.bin' % FLAGS.eps
-    # FLAGS.eval_data_set = 'test_batch_size24_eps%d_denoised.bin' % FLAGS.eps
-    # FLAGS.eval_data_set = 'test_batch_size24.bin'
+    # FLAGS.eval_data_set = 'test_batch.bin'
+    FLAGS.eval_data_set = 'test_batch_eps%d_noise.bin' % FLAGS.eps
+    # FLAGS.eval_data_set = 'test_batch_eps%d_denoised.bin' % FLAGS.eps
     cifar10_eval.evaluate()
 
 
 def show_images_with_noise():
     global FLAGS
     FLAGS.image_size = 32
-    FLAGS.eval_data_set = "test_batch_size24.bin"
+    FLAGS.eval_data_set = "test_batch.bin"
     cifar10_adversarial.show_images_with_noise()
 
 
@@ -90,8 +89,9 @@ if __name__ == '__main__':
     # generate_images_size24()
     # process_image_with_autoencoder()
     # show_images_with_noise()
-    # FLAGS.steps = 8
-    # FLAGS.alpha = 1
+    FLAGS.steps = 8
+    FLAGS.alpha = 8
+    FLAGS.eps = FLAGS.alpha
     # FLAGS.eps = FLAGS.alpha * FLAGS.steps
-    generate_images_with_noise()
-    # evaluate()
+    # generate_images_with_noise()
+    evaluate()

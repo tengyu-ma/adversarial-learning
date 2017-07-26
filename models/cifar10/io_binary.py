@@ -102,10 +102,10 @@ def compare_images_from_bin():
 
 
 def denoise_from_bin():
-    IMAGE_SIZE = 24
+    IMAGE_SIZE = 32
     ONE_LENGTH = 3 * IMAGE_SIZE * IMAGE_SIZE + 1
-    prefix = 'test_batch_size24_eps%d' % FLAGS.eps
-    file_name_noise = os.path.join('/tmp/cifar10_data/cifar-10-batches-bin', prefix+'_noise.bin')
+    prefix = 'test_batch_eps%d' % FLAGS.eps
+    file_name_noise = os.path.join('/tmp/cifar10_data/cifar-10-batches-bin', prefix+'_org.bin')
     f_noise = open(file_name_noise, 'rb')
     file_noise = f_noise.read()
     file_noise_list = list(file_noise)
@@ -117,6 +117,7 @@ def denoise_from_bin():
         image_noise = np.transpose(image_noise, (1, 2, 0)).astype('uint8')
 
         image_denoised = cv2.bilateralFilter(image_noise, 9, 75, 75)
+        # image_denoised = cv2.bilateralFilter(image_denoised, 9, 75, 75)
 
         # fig = plt.figure()
         # plt.subplot(211)
@@ -142,7 +143,7 @@ def denoise_from_bin():
         if i % 200 == 0:
             print("Step: %d" % i)
 
-    file_name_denoised = os.path.join('/tmp/cifar10_data/cifar-10-batches-bin', prefix+'_denoised.bin')
+    file_name_denoised = os.path.join('/tmp/cifar10_data/cifar-10-batches-bin', prefix+'_processed.bin')
     f_denoised = open(file_name_denoised, 'wb')
     f_denoised.write(file_denoised)
     f_denoised.close()
@@ -194,7 +195,7 @@ def processing_images_without_noise():
                 f.write(file_new)
 
 if __name__ == '__main__':
-    generate_pdf_files()
+    # generate_pdf_files()
     # processing_images_without_noise()
     # compare_images_from_bin()
-    # denoise_from_bin()
+    denoise_from_bin()
