@@ -94,20 +94,77 @@ def generate_images_with_noise():
     with tf.variable_scope('network1') as scope:
         tf.set_random_seed(1)
         batch_size = FLAGS.batch_size
-        FLAGS.image_size = 24
+        FLAGS.image_size = 32
         FLAGS.batch_size = 1
         images, labels, images_org = cifar10.inputs(eval_data=FLAGS.eval_data)
-        logits = cifar10.inference(images)
 
-        loss = cifar10.loss(logits, labels)
-        nabla_J = tf.gradients(loss, images)  # apply nabla operator to calculate the gradient
-        sign_nabla_J = tf.sign(nabla_J)  # calculate the sign of the gradient of cost function
-        eta = tf.multiply(sign_nabla_J, EPS)
-        # sign_random = tf.sign(tf.random_normal([24, 24, 3], mean=0, stddev=1))
-        # eta = tf.multiply(sign_random, EPS)  # multiply epsilon the sign of the gradient of cost function
-        eta_reshaped = tf.reshape(eta, images_org._shape)
-        images_new = tf.add(images_org, eta_reshaped)
+        # FGSM
+        # logits = cifar10.inference(images)
+        # loss = cifar10.loss(logits, labels)
+        # nabla_J = tf.gradients(loss, images)  # apply nabla operator to calculate the gradient
+        # sign_nabla_J = tf.sign(nabla_J)  # calculate the sign of the gradient of cost function
+        # eta = tf.multiply(sign_nabla_J, FLAGS.eps)
+        # eta_reshaped = tf.reshape(eta, images_org._shape)
+        # images_new = tf.add(images_org, eta_reshaped)
+        # images_org = tf.cast(images_org, tf.float32)
+
+        # Random noise
+        # sign_random = tf.sign(tf.random_normal([32, 32, 3], mean=0, stddev=1))
+        # eta = tf.multiply(sign_random, FLAGS.eps)  # multiply epsilon the sign of the gradient of cost function
+        # eta_reshaped = tf.reshape(eta, images_org._shape)
+        # images_new = tf.add(images_org, eta_reshaped)
+        # images_org = tf.cast(images_org, tf.float32)
+
+        # Step 1.1
+        # logits = cifar10.inference(images)
+        # rlogits = tf.reverse(logits,[1])
+        # rloss = cifar10.loss(rlogits, labels)
+        # nabla_J = tf.gradients(rloss, images)  # apply nabla operator to calculate the gradient
+        # sign_nabla_J = tf.sign(nabla_J)  # calculate the sign of the gradient of cost function
+        # eta = tf.multiply(sign_nabla_J, FLAGS.eps)
+        # eta_reshaped = tf.reshape(eta, images_org._shape)
+        # images_new = tf.subtract(images_org, eta_reshaped)
+        # images_org = tf.cast(images_org, tf.float32)
+
+        # Modified iter
+        # FLAGS.alpha = FLAGS.eps / FLAGS.steps
+        # alpha = FLAGS.alpha
+        # steps = FLAGS.steps
+        # images_iter = images
+        # images_org = tf.cast(images_org, tf.float32)
+        # images_new = images_org
+        #
+        # for i in range(steps):
+        #     logits = cifar10.inference(images_iter)
+        #     loss = cifar10.loss(logits, labels)
+        #     nabla_J = tf.gradients(loss, images_iter)
+        #     sign_nabla_J = tf.sign(nabla_J)
+        #     eta = tf.multiply(sign_nabla_J, alpha)
+        #     eta_reshaped = tf.reshape(eta, images_org._shape)
+        #     images_new = tf.add(images_new, eta_reshaped)
+        #     images_iter = tf.image.per_image_standardization(images_new)
+        #     images_iter = tf.reshape(images_iter, images._shape)
+        #     scope.reuse_variables()
+
+        # Iterative one-step method
+        FLAGS.alpha = FLAGS.eps
+        alpha = FLAGS.alpha
+        steps = FLAGS.steps # the EPS is alpha in this method
+        images_iter = images
         images_org = tf.cast(images_org, tf.float32)
+        images_new = images_org
+
+        for i in range(steps):
+            logits = cifar10.inference(images_iter)
+            loss = cifar10.loss(logits, labels)
+            nabla_J = tf.gradients(loss, images_iter)
+            sign_nabla_J = tf.sign(nabla_J)
+            eta = tf.multiply(sign_nabla_J, alpha)
+            eta_reshaped = tf.reshape(eta, images_org._shape)
+            images_new = tf.add(images_org, eta_reshaped)
+            images_iter = tf.image.per_image_standardization(images_new)
+            images_iter = tf.reshape(images_iter, images._shape)
+            scope.reuse_variables()
 
         # Calculate predictions.
         top_k_op = tf.nn.in_top_k(logits, labels, 1)
@@ -152,7 +209,8 @@ def generate_images_with_noise():
                     data_list_org = list(data_list_org)
                     data_bytes_org = bytes(data_list_org)
 
-                    images_array_new = (images_array_new - 128) * 128 / (128 + EPS) + 128
+                    images_array_new = (images_array_new - 127.5) * 127.5 / (127.5 + FLAGS.eps) + 127.5
+                    # images_array_new = (images_array_new - 128) * 128 / (128 + FLAGS.eps) + 128
 
                     if FLAGS.denoise_method == 'filter2D':
                         kernel_org = [[0, 1, 0], [1, 4, 1], [0, 1, 0]]
@@ -168,18 +226,22 @@ def generate_images_with_noise():
                     elif FLAGS.denoise_method == 'bilateral':
                         images_array_new = cv2.bilateralFilter(images_array_new, 9, 75, 75)
 
+                    max_value = np.max(images_array_new)
+                    min_value = np.min(images_array_new)
+                    try:
+                        assert max_value < 256
+                        assert min_value >= 0
+                    except:
+                        print(max_value)
+                        print(min_value)
+                        raise
+
                     image_matrix_new = np.array([images_array_new[:, :, 0], images_array_new[:, :, 1],
                                                  images_array_new[:, :, 2]])
                     image_list_new = np.array(image_matrix_new.flatten())
+                    # image_list_new = (image_list_new - 128) * 128 / (128 + FLAGS.eps) + 128
                     image_list_new = list(image_list_new.astype('uint8'))
-                    # image_list_new = (image_list_new - 128) * 128 / (128 + EPS) + 128
-                    max_value = np.max(image_list_new)
-                    min_value = np.min(image_list_new)
-                    try:
-                        assert max_value <= 255
-                        assert min_value >= 0
-                    except:
-                        raise
+
                     label_list_new = list(map(int, list(labels_array)))
                     data_list_new = label_list_new + image_list_new
                     data_bytes_new = bytes(data_list_new)
@@ -225,10 +287,20 @@ def show_images_with_noise():
             loss = cifar10.loss(logits, labels)
             nabla_J = tf.gradients(loss, images)  # apply nabla operator to calculate the gradient
             sign_nabla_J = tf.sign(nabla_J)  # calculate the sign of the gradient of cost function
-            eta = tf.multiply(sign_nabla_J, EPS)
+            eta = tf.multiply(sign_nabla_J, 5)
             eta_reshaped = tf.reshape(eta, images_org._shape)
             images_new = tf.add(images_org, eta_reshaped)
             images_org = tf.cast(images_org, tf.float32)
+
+            scope.reuse_variables()
+            images_iter = tf.reshape(images, images._shape)
+            logits = cifar10.inference(images_iter)
+            loss = cifar10.loss(logits, labels)
+            nabla_J = tf.gradients(loss, images_iter)
+            sign_nabla_J = tf.sign(nabla_J)
+            eta = tf.multiply(sign_nabla_J, 5)
+            eta_reshaped = tf.reshape(eta, images_org._shape)
+            images_new = tf.add(images_new, eta_reshaped)
 
             # Calculate predictions.
             top_k_op = tf.nn.in_top_k(logits, labels, 1)
@@ -238,6 +310,7 @@ def show_images_with_noise():
                 cifar10.MOVING_AVERAGE_DECAY)
             variables_to_restore = variable_averages.variables_to_restore()
             saver = tf.train.Saver(variables_to_restore)
+
 
             with tf.Session() as sess:
 
@@ -259,6 +332,7 @@ def show_images_with_noise():
                     step = 0
                     true_count = 0
                     num_iter = 5
+
                     # num_iter = int(math.ceil(FLAGS.num_examples / FLAGS.batch_size))
                     total_sample_count = num_iter * FLAGS.batch_size
                     while step < num_iter and not coord.should_stop():
@@ -267,7 +341,7 @@ def show_images_with_noise():
 
                         images_dif = images_array_new - images_array_org
 
-                        images_array_new = (images_array_new - 128) * 128 / (128 + EPS) + 128
+                        images_array_new = (images_array_new - 128) * 128 / (128 + FLAGS.eps) + 128
 
                         if FLAGS.denoise_method == 'filter2D':
                             kernel_org = [[0, 1, 0], [1, 4, 1], [0, 1, 0]]
@@ -283,17 +357,19 @@ def show_images_with_noise():
                         elif FLAGS.denoise_method == 'bilateral':
                             images_array_new = cv2.bilateralFilter(images_array_new, 9, 75, 75)
 
+                        images_array_new = images_array_new.astype('uint8')
+
                         max_value = np.max(images_dif)
                         min_value = np.min(images_dif)
                         try:
-                            assert max_value == 15
-                            assert min_value == -15
+                            assert max_value <= 15
+                            assert min_value >= -15
                         except:
                             raise
 
                         plt.figure(1)
                         plt.subplot(121)
-                        plt.imshow(images_array_org)
+                        plt.imshow(255 - images_array_org)
                         plt.subplot(122)
                         plt.imshow(images_array_new)
                         plt.show()
@@ -312,5 +388,5 @@ def show_images_with_noise():
 
 if __name__ == '__main__':
     pass
-    # generate_images_size24()
+    # generate_images_with_noise()
     # evaluate()

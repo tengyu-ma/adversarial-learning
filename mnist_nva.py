@@ -149,6 +149,13 @@ class MnistNvA:
                                                                self.sess,
                                                                self.keep_prob,
                                                                epsilon)
+        elif adv_name == 'iter':
+            x_test_adversarial, noise = adversarize.iter_mnist(self.J,
+                                                               self.x, self.y_,
+                                                               x_test_normal, y_test_normal,
+                                                               self.sess,
+                                                               self.keep_prob,
+                                                               epsilon)
         elif adv_name == 'random_method':
             x_test_adversarial, noise = adversarize.random_method(self.J,
                                                                   self.x, self.y_,
@@ -322,7 +329,7 @@ if __name__ == '__main__':
     output_img = False
     epsilon = 0.25
     thres = 0.5
-    train_iter = 1000
+    train_iter = 10000
 
     mnist_nva = MnistNvA()
 

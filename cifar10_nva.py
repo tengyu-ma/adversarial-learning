@@ -40,7 +40,7 @@ def generate_images_size24(i=0):
 
 def generate_images_with_noise(i=0):
     global FLAGS
-    FLAGS.image_size = 24
+    FLAGS.image_size = 32
     FLAGS.get_single_label = True
     if i == 0:
         FLAGS.eval_data_set = "test_batch.bin"
@@ -49,49 +49,48 @@ def generate_images_with_noise(i=0):
     filename = FLAGS.eval_data_set.split('.')[0]
     if FLAGS.use_processed_data:
         filename += '_processed'
-    filename += '_size24'
+    # filename += '_size24'
     FLAGS.eval_data_set = filename + '.bin'
-    filename = filename + '_eps%d' % EPS
+    filename = filename + '_eps%d' % FLAGS.eps
     FLAGS.generate_data_set = filename
     cifar10_adversarial.generate_images_with_noise()
     FLAGS.get_single_label = False
+    io_binary.denoise_from_bin()
 
 
 def evaluate():
     global FLAGS
-    FLAGS.image_size = 24
-    # FLAGS.eval_data_set = "test_batch_size24.bin"
-    # FLAGS.eval_data_set = 'test_batch_size24_eps%d_noise.bin' % EPS
-    # FLAGS.eval_data_set  = 'test_batch_size24_eps%d_noise_after_cae.bin' % EPS
-    # FLAGS.eval_data_set = "test_batch_processed_size24.bin"
-    # FLAGS.eval_data_set = 'test_batch_processed_size24_eps%d_org.bin' % EPS
-    # FLAGS.eval_data_set = 'test_batch_processed_size24_eps%d_noise.bin' % EPS
-    FLAGS.eval_data_set  = 'test_batch_processed_size24_eps%d_noise_after_cae.bin' % EPS
+    FLAGS.image_size = 32
+    FLAGS.eval_data_set = 'noise.bin'
+    # FLAGS.eval_data_set = 'test_batch_eps%d_org.bin' % FLAGS.eps
+    # FLAGS.eval_data_set = 'test_batch_eps%d_noise.bin' % FLAGS.eps
+    # FLAGS.eval_data_set = 'test_batch_eps%d_processed.bin' % FLAGS.eps
     cifar10_eval.evaluate()
 
 
 def show_images_with_noise():
     global FLAGS
-    FLAGS.image_size = 24
-    FLAGS.eval_data_set = "test_batch_size24.bin"
+    FLAGS.image_size = 32
+    FLAGS.eval_data_set = "test_batch.bin"
     cifar10_adversarial.show_images_with_noise()
 
 
 def process_image_with_autoencoder():
     global FLAGS
-    FLAGS.autoencoder_test_set = 'test_batch_size24_eps%d_noise.bin' % EPS
+    FLAGS.autoencoder_test_set = 'test_batch_size24_eps%d_noise.bin' % FLAGS.eps
     if FLAGS.use_processed_data:
-        FLAGS.autoencoder_test_set = 'test_batch_processed_size24_eps%d_noise.bin' % EPS
+        FLAGS.autoencoder_test_set = 'test_batch_processed_size24_eps%d_noise.bin' % FLAGS.eps
     autoencoder_run.process_image_with_autoenccoder()
     generate_bin_from_npy.main()
 
-
 if __name__ == '__main__':
-    FLAGS.use_processed_data = True  # to set
-    FLAGS.denoise_method = "None"
+    FLAGS.use_processed_data = False  # to set
+    FLAGS.denoise_method = "none"
     # train_with_original_data()
     # generate_images_size24()
-    # generate_images_with_noise()
     # process_image_with_autoencoder()
     # show_images_with_noise()
+    FLAGS.steps = 4
+    FLAGS.eps = 8
+    # generate_images_with_noise()
     evaluate()
