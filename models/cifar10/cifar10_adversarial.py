@@ -109,7 +109,7 @@ def generate_images_with_noise():
         # images_org = tf.cast(images_org, tf.float32)
 
         # Random noise
-        # sign_random = tf.sign(tf.random_normal([24, 24, 3], mean=0, stddev=1))
+        # sign_random = tf.sign(tf.random_normal([32, 32, 3], mean=0, stddev=1))
         # eta = tf.multiply(sign_random, FLAGS.eps)  # multiply epsilon the sign of the gradient of cost function
         # eta_reshaped = tf.reshape(eta, images_org._shape)
         # images_new = tf.add(images_org, eta_reshaped)
@@ -127,6 +127,7 @@ def generate_images_with_noise():
         # images_org = tf.cast(images_org, tf.float32)
 
         # Modified iter
+        # FLAGS.alpha = FLAGS.eps / FLAGS.steps
         # alpha = FLAGS.alpha
         # steps = FLAGS.steps
         # images_iter = images
@@ -146,6 +147,7 @@ def generate_images_with_noise():
         #     scope.reuse_variables()
 
         # Iterative one-step method
+        FLAGS.alpha = FLAGS.eps
         alpha = FLAGS.alpha
         steps = FLAGS.steps # the EPS is alpha in this method
         images_iter = images

@@ -105,7 +105,7 @@ def denoise_from_bin():
     IMAGE_SIZE = 32
     ONE_LENGTH = 3 * IMAGE_SIZE * IMAGE_SIZE + 1
     prefix = 'test_batch_eps%d' % FLAGS.eps
-    file_name_noise = os.path.join('/tmp/cifar10_data/cifar-10-batches-bin', prefix+'_org.bin')
+    file_name_noise = os.path.join('/tmp/cifar10_data/cifar-10-batches-bin', prefix+'_noise.bin')
     f_noise = open(file_name_noise, 'rb')
     file_noise = f_noise.read()
     file_noise_list = list(file_noise)
@@ -116,8 +116,21 @@ def denoise_from_bin():
         image_noise = np.reshape(image_noise, (3, IMAGE_SIZE, IMAGE_SIZE))
         image_noise = np.transpose(image_noise, (1, 2, 0)).astype('uint8')
 
-        image_denoised = cv2.bilateralFilter(image_noise, 9, 75, 75)
-        # image_denoised = cv2.bilateralFilter(image_denoised, 9, 75, 75)
+        FLAGS.denoise_method = 'bilateral'
+        if FLAGS.denoise_method == 'filter2D':
+            kernel_org = [[0, 1, 0], [1, 4, 1], [0, 1, 0]]
+            kernel = np.array(kernel_org) / np.sum(kernel_org) * 1.0
+            image_denoised = cv2.filter2D(image_noise, -1, kernel)
+        elif FLAGS.denoise_method == 'average':
+            image_denoised = cv2.blur(image_noise, (2, 2))
+        elif FLAGS.denoise_method == 'Gaussian':
+            image_denoised = cv2.GaussianBlur(image_noise, (3, 3), 0)
+        elif FLAGS.denoise_method == 'NLMeans':
+            img = image_noise.astype(np.uint8)
+            image_denoised = cv2.fastNlMeansDenoisingColored(img, None, 10, 7, 21)
+        elif FLAGS.denoise_method == 'bilateral':
+            image_denoised = cv2.bilateralFilter(image_noise, 9, 75, 75)
+            image_denoised = cv2.bilateralFilter(image_denoised, 9, 75, 75)
 
         # fig = plt.figure()
         # plt.subplot(211)
