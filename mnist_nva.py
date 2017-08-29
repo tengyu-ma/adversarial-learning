@@ -191,13 +191,15 @@ class MnistNvA:
                                                                          adv_name, epsilon)
 
         # Evaluate accuracy and confidence on the adversarial testing data
-        accuracy, avg_confidence = self.evaluate(x_test_adversarial, y_test_normal)
-
-        print('* Adversarial Test, eps = %f\nAccuracy\tConfidence' % epsilon)
-        print('%s\t\t%s' % (accuracy, avg_confidence))
+        # accuracy, avg_confidence = self.evaluate(x_test_adversarial, y_test_normal)
+        #
+        # print('* Adversarial Test, eps = %f\nAccuracy\tConfidence' % epsilon)
+        # print('%s\t\t%s' % (accuracy, avg_confidence))
 
         if denoise_name == 'threshold_method':
             x_test_denoised = denoise.threshold_method(x_test_adversarial, thres)
+        elif denoise_name == 'binarization':
+            x_test_denoised = denoise.binarization(x_test_adversarial, thres)
         elif denoise_name == 'bilateral':
             x_test_denoised = denoise.bilateral_mnist_method(x_test_adversarial, thres=thres)
         elif denoise_name == 'test_method':
@@ -304,10 +306,11 @@ class MnistNvA:
             conf_denoise = np.amax(y_denoise[i])
 
             # save images
-            self.save_image(x_2d, 'data/mnist/adv/%d_%d_%.4f_%s' % (i, label_norm, conf_norm, 'nom'))
-            self.save_image(x_adv_2d, 'data/mnist/adv/%d_%d_%.4f_%s' % (i, label_adv, conf_adv, 'adv'))
-            self.save_image(noise_ad, 'data/mnist/adv/%d_%d_%s' % (i, label_correct, 'noise'))
-            self.save_image(x_denoised_2d, 'data/mnist/adv/%d_%d_%.4f_%s' % (i, label_denoise, conf_denoise, 'denoised'))
+            base_dir = 'data/mnist/adv/ngsm'
+            self.save_image(x_2d, os.path.join(base_dir, '%d_%d_%.4f_%s' % (i, label_norm, conf_norm, 'nom')))
+            self.save_image(x_adv_2d, os.path.join(base_dir, '%d_%d_%.4f_%s' % (i, label_adv, conf_adv, 'adv')))
+            self.save_image(noise_ad, os.path.join(base_dir, '%d_%d_%s' % (i, label_correct, 'noise')))
+            self.save_image(x_denoised_2d, os.path.join(base_dir, '%d_%d_%.4f_%s' % (i, label_denoise, conf_denoise, 'denoised')))
 
     @staticmethod
     def save_image(image_matrix, label):
@@ -320,7 +323,7 @@ class MnistNvA:
 if __name__ == '__main__':
     restore = True
     output_img = False
-    epsilon = 0.25
+    epsilon = 0.2
     thres = 0.5
     train_iter = 1000
 
@@ -329,10 +332,11 @@ if __name__ == '__main__':
     mnist_nva.training(train_iter, restore)
 
     mnist_nva.nom_test()
-    mnist_nva.adv_test('fgsm', epsilon)
-    # mnist_nva.denoise_test(epsilon, thres, 'fgsm', 'threshold_method')
+    # mnist_nva.adv_test('fgsm', epsilon)
+    # mnist_nva.denoise_test(epsilon, thres, 'fgsm', 'binarization')
+    mnist_nva.denoise_test(epsilon, thres, 'fgsm', 'threshold_method')
     #
-    # if output_img:
-    #     mnist_nva.save_nva_images(epsilon, thres, 10, 'fgsm', 'threshold_method')
+    if output_img:
+        mnist_nva.save_nva_images(epsilon, thres, 10, 'fgsm', 'threshold_method')
 
     mnist_nva.sess.close()

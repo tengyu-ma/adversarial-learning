@@ -140,6 +140,17 @@ class ImageNetNvA:
                                                                image, label,
                                                                epsilon=eps)
             adv_label = self.sess.run(self.y, {self.rn_x: adv_image})
+
+        elif adv_name == 'all_label':
+            adv_image, noise = adversarize.all_label_fgsm_imagenet_batch(self.sess,
+                                                                         x_adv_tensor,
+                                                                         eta,
+                                                                         self.J,
+                                                                         self.x, self.y_,
+                                                                         self.rn_x,
+                                                                         image, label,
+                                                                         epsilon=eps)
+            adv_label = self.sess.run(self.y, {self.rn_x: adv_image})
             # adv_label = None
         elif adv_name == 'random':
             adv_image, noise = adversarize.random_imagenet_batch(self.J,
@@ -177,6 +188,11 @@ class ImageNetNvA:
                                                                    epsilon=eps)
             # adv_label = self.sess.run(self.y, {self.rn_x: adv_image})
             # adv_label = None
+        elif adv_name == 'all_label':
+            adv_tensor, eta = adversarize.fgsm_imagenet_batch_init(self.J,
+                                                                   self.rn_x,
+                                                                   epsilon=eps)
+            # adv_label = self
         elif adv_name == 'random':
             return None, None
         else:
@@ -250,6 +266,8 @@ class ImageNetNvA:
             denoise_image = denoise.random_cover_imagenet(adv_image, epsilon=0.007)
         elif denoise_name == 'bilateral_cover':
             denoise_image = denoise.bilateral_and_cover(adv_image)
+        elif denoise_name == 'guided_filter':
+            denoise_image = denoise.guided_filter(adv_image)
         else:
             raise Exception("Unknown denoise method: %s \n" % denoise_name)
 
@@ -520,17 +538,20 @@ class ImageNetNvA:
             score = predictions[node_id]
             total_conf += score
 
-            # node_lookup = icp.NodeLookup()
-            # node_id = images_data[1][0]
-            # human_string = node_lookup.id_to_string(node_id)
-            # self.save_image(images_data[0], 'batch_nom ' + human_string)
-            #
-            # predictions = adv_label
-            # predictions = np.squeeze(predictions)
-            # node_id = predictions.argsort()[-1:][::-1][0]
-            # human_string = node_lookup.id_to_string(node_id)
-            # # score = predictions[node_id]
-            # self.save_image(adv_image, 'batch_adv ' + human_string)
+            # save_image = True
+            save_image = False
+            if save_image:
+                node_lookup = icp.NodeLookup()
+                node_id = images_data[1][0]
+                human_string = node_lookup.id_to_string(node_id)
+                self.save_image(images_data[0], 'batch_nom ' + human_string)
+
+                predictions = adv_label
+                predictions = np.squeeze(predictions)
+                node_id = predictions.argsort()[-1:][::-1][0]
+                human_string = node_lookup.id_to_string(node_id)
+                # score = predictions[node_id]
+                self.save_image(adv_image, 'batch_adv ' + human_string)
 
             counter += 1
             if counter % 100 == 0:
@@ -569,7 +590,7 @@ class ImageNetNvA:
         total_sample_count = 0.0
         total_conf = 0.0
 
-        f = open('%s.txt' % denoise_name, 'w+')
+        # f = open('%s.txt' % denoise_name, 'w+')
         while not coord.should_stop():
             images_data = self.sess.run([images,
                                          labels])
@@ -585,7 +606,8 @@ class ImageNetNvA:
                     adv_image, np.squeeze(adv_label)
                 )
             else:
-                denoise_image, denoise_label = self.denoise(adv_image, denoise_name)
+                denoise_image, denoise_label = self.denoise(adv_image, denoise_name)  # denoise on adv image
+                # denoise_image, denoise_label = self.denoise(images_data[0], denoise_name)  # denoise on original image
 
             top_1 = self.sess.run(top_1_op, {self.rn_x: denoise_image,
                                              labels: images_data[1]})
@@ -634,7 +656,7 @@ class ImageNetNvA:
                 print("top 1 confidence: %.4f" % conf_at_1)
                 print("top 5 accuracy: %.4f" % recall_at_5)
 
-                f.write("%d\t%.4f\t%.4f\t%.4f\t\n" % (counter, precision_at_1, conf_at_1, recall_at_5))
+                # f.write("%d\t%.4f\t%.4f\t%.4f\t\n" % (counter, precision_at_1, conf_at_1, recall_at_5))
 
             if counter == val_num:
                 coord.request_stop()
@@ -755,8 +777,8 @@ if __name__ == '__main__':
     # nva.denoised_test()
     nva.set_batch_images()
     # nva.batch_inference(val_num=200)
-    nva.batch_adv_inference(val_num=10000, adv_name='fgsm')
-    # nva.batch_adv_random_label_inference(1000)
-    # nva.batch_denoise_inference(val_num=50000,
-    #                             adv_name='fgsm',
-    #                             denoise_name='bilateral_cover')
+    # nva.batch_adv_inference(val_num=1000, adv_name='fgsm')
+    # nva.batch_adv_random_label_inference(1000, adv_name='fgsm')
+    nva.batch_denoise_inference(val_num=1000,
+                                adv_name='fgsm',
+                                denoise_name='bilateral')

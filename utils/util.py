@@ -10,3 +10,5 @@ SUPPORTED_DNNS = ['ReLU_Softmax_AdamOptimizer',
 
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))[:-len("\\utils")]
 ImageNet_DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__))[:-len("\\utils")], "data", "imagenet")
+ImageNet_MODEL_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__))[:-len("\\utils")], "models", "imagenet")
+RANDOM_FOREST_MODEL = os.path.join(ImageNet_MODEL_DIR, "model.yml")

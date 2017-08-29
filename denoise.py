@@ -4,7 +4,10 @@ import cv2
 import numpy as np
 import tensorflow as tf
 import os
+import models.imagenet_inception as icp
+
 from scipy.misc import toimage
+from cv2.ximgproc import guidedFilter, l0Smooth, rollingGuidanceFilter, createStructuredEdgeDetection
 from utils import util
 
 
@@ -22,10 +25,44 @@ def threshold_method(im, thres=0.5):
     for i in range(len(im)):
         img = im[i].reshape(28, 28)
         # tmp = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)  # good with (1,2) kernel
-        # tmp = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)  # not good
+        tmp = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)  # not good
         # tmp = cv2.erode(img,kernel,iterations = 1)  # not good
-        tmp = cv2.dilate(img, kernel, iterations=1)  # best with (2,2) kernel
+        # tmp = cv2.dilate(img, kernel, iterations=1)  # best with (2,2) kernel
         im[i] = tmp.flatten()
+
+    # thres1 = 2 * (0 - min_im) / (max_im - min_im) + adj
+    # thres2 = 1 / (max_im - min_im) - adj
+    # thres2 = 1 - thres1
+    # im = im.flatten()
+    # for i in range(len(im)):
+    #     if im[i] < thres1:
+    #         im[i] = 0
+    #     elif im[i] > thres2:
+    #         im[i] = 1
+    #     else:
+    #         im[i] = (im[i] - 0.5) * (max_im - min_im) + 0.5
+    # im = im.reshape((-1,784))
+    return im
+
+
+def binarization(im, thres=0.5):
+    # best performance achieved when thres = 0.41, eps = 0.25, dilate with kernel (2,2)
+    # 0.9394		0.975262
+    min_im = im.min()
+    max_im = im.max()
+    im = (im - min_im) / (max_im - min_im)
+    im[im <= thres] = 0
+    im[im > thres] = 1
+
+    # kernel = ones((2, 2), uint8)
+    #
+    # for i in range(len(im)):
+    #     img = im[i].reshape(28, 28)
+    #     # tmp = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)  # good with (1,2) kernel
+    #     # tmp = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)  # not good
+    #     # tmp = cv2.erode(img,kernel,iterations = 1)  # not good
+    #     tmp = cv2.dilate(img, kernel, iterations=1)  # best with (2,2) kernel
+    #     im[i] = tmp.flatten()
 
     # thres1 = 2 * (0 - min_im) / (max_im - min_im) + adj
     # thres2 = 1 / (max_im - min_im) - adj
@@ -196,9 +233,56 @@ def bilateral_filter(im, d=9, sigma_color=20, sigma_space=20):
     # img = im.astype(np.uint8)
     # img_c = cv2.imread('panda1.jpg')
     im = np.squeeze(im)
+    # im = (im + 1.0) / 2.0
+
+    # cv2.denoise_TVL1()
     img_output = cv2.bilateralFilter(im, d, sigma_color, sigma_space)
+    img_output = cv2.bilateralFilter(img_output, d, sigma_color, sigma_space)
     # img_output = img_output * 2.0 + 0.014 # increase contrast
     img_output = np.expand_dims(img_output, 0)
+
+    # img_output = (img_output - 0.5) * 2.0
+
+    return img_output
+
+
+def guided_filter(im):
+    """Bilateral filter
+    
+    Parameters
+    ----------
+    im : ndarray
+        the input image data
+        
+    Returns
+    -------
+    image_output : ndarray
+        the filtered output data
+
+    """
+    # normlizer = 255 / (np.amax(im) - np.amin(im))
+    # im = (im + epsilon) * normlizer
+    # img = im.astype(np.uint8)
+    # img_c = cv2.imread('panda1.jpg')
+    im = np.squeeze(im)
+    im = (im + 1.0) / 2.0
+    file_name = util.RANDOM_FOREST_MODEL
+    structured_edge = createStructuredEdgeDetection(file_name)
+    edges = structured_edge.detectEdges(im)
+    edges = cv2.cvtColor(edges, cv2.COLOR_GRAY2RGB)
+    # img_output = rollingGuidanceFilter(im)
+    # img_output = img_output * 2.0 + 0.014 # increase co ntrast
+
+    # save_image(img_output, 'structured_edge')
+    img_output = im + edges
+    # save_image(img_output, 'structured_edge_unnormalized')
+    img_output = img_output / np.amax(img_output)
+    # save_image(img_output, 'structured_edge_0-1')
+    img_output = (img_output - 0.5) * 2.0
+    # save_image(img_output, 'structured_edge_-1-1')
+
+    img_output = np.expand_dims(img_output, 0)
+
     return img_output
 
 
@@ -373,12 +457,27 @@ def bilateral_and_cover(im, d=9, sigma_color=15, sigma_space=15):
     # img_c = cv2.imread('panda1.jpg')
     im = np.squeeze(im)
 
-    laplacian = cv2.Laplacian(im, cv2.CV_32F)
-    noise = np.sign(laplacian) * 0.007
+    im = (im + 1.0) / 2.0
+    file_name = util.RANDOM_FOREST_MODEL
+    structured_edge = createStructuredEdgeDetection(file_name)
+    edges = structured_edge.detectEdges(im)
+    edges = cv2.cvtColor(edges, cv2.COLOR_GRAY2RGB)
+    # img_output = rollingGuidanceFilter(im)
+    # img_output = img_output * 2.0 + 0.014 # increase co ntrast
+
+    # # save_image(img_output, 'structured_edge')
+    # img_output = im + edges
+    # # save_image(img_output, 'structured_edge_unnormalized')
+    # img_output = img_output / np.amax(img_output)
+    # # save_image(img_output, 'structured_edge_0-1')
+    # img_output = (img_output - 0.5) * 2.0
+    # # save_image(img_output, 'structured_edge_-1-1')
 
     img_output = cv2.bilateralFilter(im, d=d, sigmaColor=sigma_color, sigmaSpace=sigma_space)
 
-    img_output = img_output - noise
+    img_output = img_output + edges
+
+    img_output = (img_output - 0.5) * 2.0
 
     img_output = np.expand_dims(img_output, 0)
     return img_output
@@ -407,8 +506,8 @@ def counter_fgsm_imagenet_batch_init(J, rn_x, epsilon=2):
     nabla_J = tf.gradients(J, rn_x)  # apply nabla operator to calculate the gradient
     sign_nabla_J = tf.sign(nabla_J)  # calculate the sign of the gradient of cost function
     eta = tf.multiply(sign_nabla_J, epsilon)  # multiply epsilon the sign of the gradient of cost function
-    # x_adv_tensor = tf.add(rn_x, tf.squeeze(eta))
-    x_adv_tensor = tf.subtract(rn_x, tf.squeeze(eta))
+    x_adv_tensor = tf.add(rn_x, tf.squeeze(eta))
+    # x_adv_tensor = tf.subtract(rn_x, tf.squeeze(eta))
     # noise = sess.run(eta, {rn_x: image_data, y_: image_label})
     # noise = None
     # x_adv = sess.run(tf.add(rn_x, tf.squeeze(eta)), {rn_x: image_data, y_: image_label})  # add noise to test data
@@ -454,6 +553,8 @@ def counter_fgsm(sess, counter_adv_tensor, counter_eta,
     # im = (im + epsilon) * normlizer
     # img = im.astype(np.uint8)
     # img_c = cv2.imread('panda1.jpg')
+    # icp.
+    image_label = np.zeros((1008,), dtype=np.float32)
     noise = sess.run(counter_eta, {rn_x: image_data, y_: image_label})
     x_adv = sess.run(counter_adv_tensor, {rn_x: image_data, y_: image_label})
 
